@@ -5,7 +5,7 @@
         target_schema = 'snapshots',
         unique_key = 'user_id',
         strategy = 'check',
-        check_cols = ['email', 'first_name', 'last_name', 'state', 'city', 'country', 'traffic_source'],
+        check_cols = ['email', 'first_name', 'last_name', 'state', 'city', 'country', 'raw_traffic_source'],
         tags = ['snapshot', 'scd2', 'users'],
         invalidate_hard_deletes = true
     )
@@ -22,7 +22,7 @@ select
     state,
     city,
     country,
-    traffic_source,
+    raw_traffic_source,
     acquisition_channel,
     cohort_month,
     age_band,

@@ -48,19 +48,24 @@ monthly_revenue as (
     group by 1
 ),
 
-order_intervals as (
-    -- Average days between consecutive orders per user
+order_intervals_raw as (
     select
         user_id,
-        avg(
-            date_diff(
-                created_date,
-                lag(created_date) over (partition by user_id order by created_date),
-                day
-            )
-        )                                                           as avg_days_between_orders
+        date_diff(
+            order_date,
+            lag(order_date) over (partition by user_id order by order_date),
+            day
+        )                                                           as days_since_prev_order
     from {{ ref('fct_orders') }}
     where is_completed = true
+),
+
+order_intervals as (
+    select
+        user_id,
+        avg(days_since_prev_order)                                  as avg_days_between_orders
+    from order_intervals_raw
+    where days_since_prev_order is not null
     group by 1
 )
 
@@ -77,6 +82,8 @@ select
     u.completed_orders,
     u.first_order_at,
     u.last_order_at,
+    u.first_order_month,
+    u.last_order_month,
     u.days_since_last_order,
 
     -- ── Observed LTV metrics ──────────────────────────────────────────────────
