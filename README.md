@@ -18,10 +18,17 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed data flow and layer descript
 2. Clone the repository
 3. Create virtual environment: `python -m venv .venv`
 4. Activate: `.venv\Scripts\activate` (Windows)
-5. Install dependencies: `pip install -r requirements.txt`
+5. Install dependencies: `make install` or `pip install -r requirements.txt`
 6. Configure BigQuery credentials in `profiles.yml`
-7. Run `dbt deps` to install packages
-8. Run `dbt build` to build all models
+7. Run `make deps` or `dbt deps` to install packages
+8. Run `make build` or `dbt build` to build all models
+
+## Commands
+
+- `make build` - Build all models
+- `make test` - Run tests
+- `make docs` - Generate docs
+- `make clean` - Clean target
 
 ## Development
 
