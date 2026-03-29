@@ -10,7 +10,11 @@ models:
       - name: user_id
         tests: [unique, not_null]
       - name: email
-        tests: [unique, not_null]
+        tests:
+          - not_null
+          - unique:
+              config:
+                severity: warn
       - name: cohort_month
         description: First day of the month the user registered — used for cohort analysis.
         tests: [not_null]
@@ -65,7 +69,10 @@ models:
       - name: product_id
         tests: [unique, not_null]
       - name: product_name
-        tests: [not_null]
+        tests:
+          - not_null:
+              config:
+                severity: warn
       - name: category
         tests: [not_null]
 

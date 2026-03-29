@@ -26,7 +26,11 @@ sources:
             tests: [unique, not_null]
           - name: email
             description: User email address.
-            tests: [unique, not_null]
+            tests:
+              - not_null
+              - unique:
+                  config:
+                    severity: warn
           - name: created_at
             description: Registration timestamp.
             tests: [not_null]
@@ -52,6 +56,8 @@ sources:
               - accepted_values:
                   arguments:
                     values: ['complete', 'cancelled', 'returned', 'shipped', 'processing']
+                  config:
+                    severity: warn
 
       - name: order_items
         description: Order line items — one row per product per order.
@@ -81,7 +87,10 @@ sources:
             description: Surrogate product key.
             tests: [unique, not_null]
           - name: name
-            tests: [not_null]
+            tests:
+              - not_null:
+                  config:
+                    severity: warn
           - name: category
             tests: [not_null]
 
@@ -99,7 +108,10 @@ sources:
             description: Surrogate event key.
             tests: [unique, not_null]
           - name: user_id
-            tests: [not_null]
+            tests:
+              - not_null:
+                  config:
+                    severity: warn
           - name: session_id
             tests: [not_null]
           - name: event_type

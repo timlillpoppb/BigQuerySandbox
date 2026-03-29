@@ -35,158 +35,158 @@ help: ## Show this help
 	@echo "Other commands: compile, snapshot, seed, source-freshness, debug, parse, list, docs-serve"
 
 install: ## Install Python dependencies
-	./.venv/Scripts/python.exe -m pip install -r requirements.txt
+	./.venv311/Scripts/python.exe -m pip install -r requirements.txt
 
 deps: ## Install dbt packages
-	./.venv/Scripts/python.exe -m dbt.cli.main deps
+	./.venv311/Scripts/dbt.exe deps
 
 # ===== RUN COMMANDS =====
 run: ## Run all models
-	./.venv/Scripts/python.exe -m dbt.cli.main run
+	./.venv311/Scripts/dbt.exe run
 
 run-full: ## Run all models with full refresh
-	./.venv/Scripts/python.exe -m dbt.cli.main run --full-refresh
+	./.venv311/Scripts/dbt.exe run --full-refresh
 
 run-bronze: ## Run bronze layer models
-	./.venv/Scripts/python.exe -m dbt.cli.main run --select bronze
+	./.venv311/Scripts/dbt.exe run --select bronze
 
 run-silver: ## Run silver layer models
-	./.venv/Scripts/python.exe -m dbt.cli.main run --select silver
+	./.venv311/Scripts/dbt.exe run --select silver
 
 run-gold: ## Run gold layer models
-	./.venv/Scripts/python.exe -m dbt.cli.main run --select gold
+	./.venv311/Scripts/dbt.exe run --select gold
 
 run-staging: ## Run staging models
-	./.venv/Scripts/python.exe -m dbt.cli.main run --select stg_*
+	./.venv311/Scripts/dbt.exe run --select stg_*
 
 run-facts: ## Run fact tables
-	./.venv/Scripts/python.exe -m dbt.cli.main run --select fact_*
+	./.venv311/Scripts/dbt.exe run --select fact_*
 
 run-dims: ## Run dimension tables
-	./.venv/Scripts/python.exe -m dbt.cli.main run --select dim_*
+	./.venv311/Scripts/dbt.exe run --select dim_*
 
 run-incremental: ## Run incremental models only
-	./.venv/Scripts/python.exe -m dbt.cli.main run --select config.materialized:incremental
+	./.venv311/Scripts/dbt.exe run --select config.materialized:incremental
 
 # ===== BUILD COMMANDS =====
 build: ## Build all models (run + test)
-	./.venv/Scripts/python.exe -m dbt.cli.main build
+	./.venv311/Scripts/dbt.exe build
 
 build-full: ## Build all models with full refresh
-	./.venv/Scripts/python.exe -m dbt.cli.main build --full-refresh
+	./.venv311/Scripts/dbt.exe build --full-refresh
 
 build-bronze: ## Build bronze layer
-	./.venv/Scripts/python.exe -m dbt.cli.main build --select bronze
+	./.venv311/Scripts/dbt.exe build --select bronze
 
 build-silver: ## Build silver layer
-	./.venv/Scripts/python.exe -m dbt.cli.main build --select silver
+	./.venv311/Scripts/dbt.exe build --select silver
 
 build-gold: ## Build gold layer
-	./.venv/Scripts/python.exe -m dbt.cli.main build --select gold
+	./.venv311/Scripts/dbt.exe build --select gold
 
 # ===== TEST COMMANDS =====
 test: ## Run all tests
-	./.venv/Scripts/python.exe -m dbt.cli.main test
+	./.venv311/Scripts/dbt.exe test
 
 test-data: ## Run data tests only
-	./.venv/Scripts/python.exe -m dbt.cli.main test --data
+	./.venv311/Scripts/dbt.exe test --data
 
 test-schema: ## Run schema tests only
-	./.venv/Scripts/python.exe -m dbt.cli.main test --schema
+	./.venv311/Scripts/dbt.exe test --schema
 
 test-bronze: ## Test bronze layer
-	./.venv/Scripts/python.exe -m dbt.cli.main test --select bronze
+	./.venv311/Scripts/dbt.exe test --select bronze
 
 test-silver: ## Test silver layer
-	./.venv/Scripts/python.exe -m dbt.cli.main test --select silver
+	./.venv311/Scripts/dbt.exe test --select silver
 
 test-gold: ## Test gold layer
-	./.venv/Scripts/python.exe -m dbt.cli.main test --select gold
+	./.venv311/Scripts/dbt.exe test --select gold
 
 # ===== STATE-BASED COMMANDS (CI/CD) =====
 state-modified: ## Run modified models since last state
-	./.venv/Scripts/python.exe -m dbt.cli.main run --select state:modified
+	./.venv311/Scripts/dbt.exe run --select state:modified
 
 state-modified-plus: ## Run modified models + downstream
-	./.venv/Scripts/python.exe -m dbt.cli.main run --select state:modified+
+	./.venv311/Scripts/dbt.exe run --select state:modified+
 
 state-test-modified: ## Test modified models
-	./.venv/Scripts/python.exe -m dbt.cli.main test --select state:modified
+	./.venv311/Scripts/dbt.exe test --select state:modified
 
 state-build-modified: ## Build modified models + downstream
-	./.venv/Scripts/python.exe -m dbt.cli.main build --select state:modified+
+	./.venv311/Scripts/dbt.exe build --select state:modified+
 
 # ===== OTHER DBT COMMANDS =====
 compile: ## Compile all models (dry run)
-	./.venv/Scripts/python.exe -m dbt.cli.main compile
+	./.venv311/Scripts/dbt.exe compile
 
 snapshot: ## Update all snapshots
-	./.venv/Scripts/python.exe -m dbt.cli.main snapshot
+	./.venv311/Scripts/dbt.exe snapshot
 
 seed: ## Load seed data
-	./.venv/Scripts/python.exe -m dbt.cli.main seed
+	./.venv311/Scripts/dbt.exe seed
 
 source-freshness: ## Check source data freshness
-	./.venv/Scripts/python.exe -m dbt.cli.main source freshness
+	./.venv311/Scripts/dbt.exe source freshness
 
 debug: ## Debug dbt configuration
-	./.venv/Scripts/python.exe -m dbt.cli.main debug
+	./.venv311/Scripts/dbt.exe debug
 
 parse: ## Parse project and validate
-	./.venv/Scripts/python.exe -m dbt.cli.main parse
+	./.venv311/Scripts/dbt.exe parse
 
 list: ## List all models
-	./.venv/Scripts/python.exe -m dbt.cli.main list
+	./.venv311/Scripts/dbt.exe list
 
 docs: ## Generate documentation
-	./.venv/Scripts/python.exe -m dbt.cli.main docs generate
+	./.venv311/Scripts/dbt.exe docs generate
 
 docs-serve: ## Serve docs locally
-	./.venv/Scripts/python.exe -m dbt.cli.main docs serve
+	./.venv311/Scripts/dbt.exe docs serve
 
 # ===== UTILITY COMMANDS =====
 clean: ## Clean target directory
 	rm -rf target/
 
 version: ## Show dbt version
-	./.venv/Scripts/python.exe -m dbt.cli.main --version
+	./.venv311/Scripts/dbt.exe --version
 
 # ===== CUSTOM SELECT COMMANDS =====
 # Usage: make run-select SELECT="my_model"
 run-select: ## Run specific model(s) - usage: make run-select SELECT="my_model"
-	./.venv/Scripts/python.exe -m dbt.cli.main run --select $(SELECT)
+	./.venv311/Scripts/dbt.exe run --select $(SELECT)
 
 test-select: ## Test specific model(s) - usage: make test-select SELECT="my_model"
-	./.venv/Scripts/python.exe -m dbt.cli.main test --select $(SELECT)
+	./.venv311/Scripts/dbt.exe test --select $(SELECT)
 
 build-select: ## Build specific model(s) - usage: make build-select SELECT="my_model"
-	./.venv/Scripts/python.exe -m dbt.cli.main build --select $(SELECT)
+	./.venv311/Scripts/dbt.exe build --select $(SELECT)
 
 # ===== ENVIRONMENT TARGETS =====
 # Usage: make run-target-dev, make run-target-staging, make run-target-prod
 run-target-dev: ## Run in dev environment
-	./.venv/Scripts/python.exe -m dbt.cli.main run --target dev
+	./.venv311/Scripts/dbt.exe run --target dev
 
 run-target-staging: ## Run in staging environment
-	./.venv/Scripts/python.exe -m dbt.cli.main run --target staging
+	./.venv311/Scripts/dbt.exe run --target staging
 
 run-target-prod: ## Run in prod environment
-	./.venv/Scripts/python.exe -m dbt.cli.main run --target prod
+	./.venv311/Scripts/dbt.exe run --target prod
 
 test-target-dev: ## Test in dev environment
-	./.venv/Scripts/python.exe -m dbt.cli.main test --target dev
+	./.venv311/Scripts/dbt.exe test --target dev
 
 test-target-staging: ## Test in staging environment
-	./.venv/Scripts/python.exe -m dbt.cli.main test --target staging
+	./.venv311/Scripts/dbt.exe test --target staging
 
 test-target-prod: ## Test in prod environment
-	./.venv/Scripts/python.exe -m dbt.cli.main test --target prod
+	./.venv311/Scripts/dbt.exe test --target prod
 
 build-target-dev: ## Build in dev environment
-	./.venv/Scripts/python.exe -m dbt.cli.main build --target dev
+	./.venv311/Scripts/dbt.exe build --target dev
 
 build-target-staging: ## Build in staging environment
-	./.venv/Scripts/python.exe -m dbt.cli.main build --target staging
+	./.venv311/Scripts/dbt.exe build --target staging
 
 build-target-prod: ## Build in prod environment
-	./.venv/Scripts/python.exe -m dbt.cli.main build --target prod
+	./.venv311/Scripts/dbt.exe build --target prod
