@@ -7,7 +7,7 @@ dbt_medallion:
       project: project-2ac71b10-d4cb-403a-b2c
       dataset: dev_dataset
       threads: 4
-      location: US
+      location: us-east5
       priority: interactive
     staging:
       type: bigquery
@@ -15,7 +15,7 @@ dbt_medallion:
       project: project-2ac71b10-d4cb-403a-b2c
       dataset: staging_dataset
       threads: 4
-      location: US
+      location: us-east5
       priority: batch
     prod:
       type: bigquery
@@ -23,5 +23,5 @@ dbt_medallion:
       project: project-2ac71b10-d4cb-403a-b2c
       dataset: prod_dataset
       threads: 4
-      location: US
+      location: us-east5
       priority: batch
