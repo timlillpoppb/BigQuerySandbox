@@ -4,19 +4,19 @@ help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 install: ## Install Python dependencies
-	pip install -r requirements.txt
+	./.venv/Scripts/python.exe -m pip install -r requirements.txt
 
 deps: ## Install dbt packages
-	dbt deps
+	./.venv/Scripts/python.exe -m dbt.cli.main deps
 
 build: ## Build all models
-	dbt build
+	./.venv/Scripts/python.exe -m dbt.cli.main build
 
 test: ## Run all tests
-	dbt test
+	./.venv/Scripts/python.exe -m dbt.cli.main test
 
 docs: ## Generate documentation
-	dbt docs generate
+	./.venv/Scripts/python.exe -m dbt.cli.main docs generate
 
 clean: ## Clean target directory
 	rm -rf target/

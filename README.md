@@ -29,6 +29,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed data flow and layer descript
 - `make test` - Run tests
 - `make docs` - Generate docs
 - `make clean` - Clean target
+- Or use VS Code tasks for dbt run/test/build
 
 ## Development
 
