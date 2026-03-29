@@ -2,8 +2,9 @@ version: 2
 
 metrics:
   - name: total_transactions
+    label: Total Transactions
     model: ref('fct_transactions')
-    description: Total number of transactions
+    description: "Total number of transactions"
     type: count
     sql: id
     timestamp: transaction_date
@@ -12,8 +13,9 @@ metrics:
       - source
 
   - name: total_amount
+    label: Total Amount
     model: ref('fct_transactions')
-    description: Total transaction amount
+    description: "Total transaction amount"
     type: sum
     sql: amount
     timestamp: transaction_date
