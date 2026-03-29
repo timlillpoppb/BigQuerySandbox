@@ -1,0 +1,24 @@
+version: 2
+
+exposures:
+  - name: transaction_facts
+    type: dashboard
+    maturity: high
+    url: https://bi-tool.com/dashboards/transactions
+    description: Transaction facts for analytics
+    depends_on:
+      - ref('fct_transactions')
+    owner:
+      name: Data Team
+      email: data@company.com
+
+  - name: entity_dimensions
+    type: dashboard
+    maturity: high
+    url: https://bi-tool.com/dimensions/entities
+    description: Entity dimensions with history
+    depends_on:
+      - ref('dim_entities')
+    owner:
+      name: Data Team
+      email: data@company.com

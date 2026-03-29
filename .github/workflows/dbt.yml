@@ -1,0 +1,42 @@
+name: dbt CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  dbt:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dbt
+      run: |
+        pip install dbt-bigquery
+
+    - name: dbt deps
+      run: dbt deps
+
+    - name: dbt build
+      run: dbt build --target dev
+      env:
+        DBT_PROFILES_DIR: .
+
+    - name: dbt test
+      run: dbt test --target dev
+      env:
+        DBT_PROFILES_DIR: .
+
+    - name: dbt docs generate
+      run: dbt docs generate --target dev
+      env:
+        DBT_PROFILES_DIR: .

@@ -1,0 +1,22 @@
+version: 2
+
+sources:
+  - name: datastream
+    database: your-gcp-project-id
+    schema: raw_datastream
+    tables:
+      - name: raw_table
+        description: Raw data from datastream database
+        freshness:
+          warn_after: {count: 1, period: hour}
+          error_after: {count: 24, period: hour}
+
+  - name: pubsub
+    database: your-gcp-project-id
+    schema: raw_pubsub
+    tables:
+      - name: events
+        description: Streaming events from pub/sub
+        freshness:
+          warn_after: {count: 30, period: minute}
+          error_after: {count: 2, period: hour}

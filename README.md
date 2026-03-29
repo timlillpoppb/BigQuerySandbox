@@ -14,10 +14,14 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed data flow and layer descript
 
 ## Setup
 
-1. Install dependencies: `pip install -r requirements.txt`
-2. Configure BigQuery credentials in `profiles.yml`
-3. Run `dbt deps` to install packages
-4. Run `dbt build` to build all models
+1. Install Python 3.11 (dbt compatibility)
+2. Clone the repository
+3. Create virtual environment: `python -m venv .venv`
+4. Activate: `.venv\Scripts\activate` (Windows)
+5. Install dependencies: `pip install -r requirements.txt`
+6. Configure BigQuery credentials in `profiles.yml`
+7. Run `dbt deps` to install packages
+8. Run `dbt build` to build all models
 
 ## Development
 

@@ -1,0 +1,4 @@
+dbt-bigquery==1.8.3
+dbt-utils==1.1.1
+dbt-expectations==0.10.0
+dbt-audit-helper==0.10.0
