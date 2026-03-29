@@ -63,9 +63,15 @@ make build-select SELECT="my_model"   # Build specific model
 
 ### Environment Targets
 ```bash
-make run-dev       # Run in dev
-make run-staging   # Run in staging
-make run-prod      # Run in prod
+make run-target-dev       # Run in dev
+make run-target-staging   # Run in staging
+make run-target-prod      # Run in prod
+make test-target-dev      # Test in dev
+make test-target-staging  # Test in staging
+make test-target-prod     # Test in prod
+make build-target-dev     # Build in dev
+make build-target-staging # Build in staging
+make build-target-prod    # Build in prod
 ```
 
 ### Other Operations

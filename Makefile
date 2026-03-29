@@ -7,7 +7,32 @@
 .PHONY: state-modified state-modified-plus
 
 help: ## Show this help
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@echo "Available make commands:"
+	@echo "  build           - Build all models (run + test)"
+	@echo "  test            - Run all tests"
+	@echo "  run             - Run all models"
+	@echo "  docs            - Generate documentation"
+	@echo "  deps            - Install dbt packages"
+	@echo "  clean           - Clean target directory"
+	@echo "  version         - Show dbt version"
+	@echo ""
+	@echo "Layer-specific commands:"
+	@echo "  run-bronze, run-silver, run-gold"
+	@echo "  build-bronze, build-silver, build-gold"
+	@echo "  test-bronze, test-silver, test-gold"
+	@echo ""
+	@echo "Environment commands:"
+	@echo "  run-target-dev, run-target-staging, run-target-prod"
+	@echo "  test-target-dev, test-target-staging, test-target-prod"
+	@echo "  build-target-dev, build-target-staging, build-target-prod"
+	@echo ""
+	@echo "State-based commands:"
+	@echo "  state-modified, state-modified-plus, state-build-modified"
+	@echo ""
+	@echo "Custom selection:"
+	@echo "  run-select SELECT=model, test-select SELECT=model, build-select SELECT=model"
+	@echo ""
+	@echo "Other commands: compile, snapshot, seed, source-freshness, debug, parse, list, docs-serve"
 
 install: ## Install Python dependencies
 	./.venv/Scripts/python.exe -m pip install -r requirements.txt
@@ -138,21 +163,30 @@ build-select: ## Build specific model(s) - usage: make build-select SELECT="my_m
 	./.venv/Scripts/python.exe -m dbt.cli.main build --select $(SELECT)
 
 # ===== ENVIRONMENT TARGETS =====
-# Usage: make run-dev, make run-staging, make run-prod
-run-dev: ## Run in dev environment
+# Usage: make run-target-dev, make run-target-staging, make run-target-prod
+run-target-dev: ## Run in dev environment
 	./.venv/Scripts/python.exe -m dbt.cli.main run --target dev
 
-run-staging: ## Run in staging environment
+run-target-staging: ## Run in staging environment
 	./.venv/Scripts/python.exe -m dbt.cli.main run --target staging
 
-run-prod: ## Run in prod environment
+run-target-prod: ## Run in prod environment
 	./.venv/Scripts/python.exe -m dbt.cli.main run --target prod
 
-test-dev: ## Test in dev environment
+test-target-dev: ## Test in dev environment
 	./.venv/Scripts/python.exe -m dbt.cli.main test --target dev
 
-test-staging: ## Test in staging environment
+test-target-staging: ## Test in staging environment
 	./.venv/Scripts/python.exe -m dbt.cli.main test --target staging
 
-test-prod: ## Test in prod environment
+test-target-prod: ## Test in prod environment
 	./.venv/Scripts/python.exe -m dbt.cli.main test --target prod
+
+build-target-dev: ## Build in dev environment
+	./.venv/Scripts/python.exe -m dbt.cli.main build --target dev
+
+build-target-staging: ## Build in staging environment
+	./.venv/Scripts/python.exe -m dbt.cli.main build --target staging
+
+build-target-prod: ## Build in prod environment
+	./.venv/Scripts/python.exe -m dbt.cli.main build --target prod
