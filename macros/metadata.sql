@@ -1,7 +1,7 @@
--- Macro to add metadata columns to models
+-- Adds standard audit columns to any model.
+-- Usage: SELECT col1, col2, {{ add_metadata_columns() }} FROM source
 {% macro add_metadata_columns() %}
-    , created_at as current_timestamp() as created_at
-    , updated_at as current_timestamp() as updated_at
-    , 'system' as created_by
-    , 'system' as updated_by
+    current_timestamp()      as _loaded_at,
+    '{{ invocation_id }}'    as _dbt_run_id,
+    '{{ this.name }}'        as _source_model
 {% endmacro %}

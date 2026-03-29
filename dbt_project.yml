@@ -1,5 +1,5 @@
 name: 'dbt_medallion'
-version: '1.0.0'
+version: '2.0.0'
 config-version: 2
 
 profile: 'dbt_medallion'
@@ -16,23 +16,72 @@ clean-targets:
   - "target"
   - "dbt_packages"
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Project Variables — Subscription Analytics Configuration
+# ─────────────────────────────────────────────────────────────────────────────
+vars:
+  # A user with this many orders or more is treated as a "subscriber"
+  min_orders_for_subscriber: 2
+  # A subscriber is "active" if they ordered within this many days
+  churn_inactivity_days: 90
+  # MRR lookback window in months
+  mrr_lookback_months: 1
+  # Date spine range for dim_date
+  date_spine_start: "2018-01-01"
+  date_spine_end: "2030-12-31"
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Model Configurations
+# ─────────────────────────────────────────────────────────────────────────────
 models:
   dbt_medallion:
+
     bronze:
       +materialized: table
       +schema: bronze
+      +tags: ['bronze', 'raw']
+      +docs:
+        node_color: '#CD7F32'
+
     silver:
       +materialized: view
       +schema: silver
+      +tags: ['silver', 'cleaned']
+      +docs:
+        node_color: '#C0C0C0'
+
     gold:
       +materialized: table
       +schema: gold
+      +tags: ['gold', 'analytics']
+      +docs:
+        node_color: '#FFD700'
 
+      dimensions:
+        +tags: ['gold', 'dimension']
+
+      facts:
+        +tags: ['gold', 'fact']
+
+      reports:
+        +tags: ['gold', 'report']
+        +docs:
+          node_color: '#FF8C00'
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Seeds
+# ─────────────────────────────────────────────────────────────────────────────
 seeds:
-  +schema: seeds
+  dbt_medallion:
+    +schema: seeds
+    +docs:
+      node_color: '#808080'
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Snapshots
+# ─────────────────────────────────────────────────────────────────────────────
 snapshots:
-  +target_schema: snapshots
-  +unique_key: id
-  +strategy: timestamp
-  +updated_at: updated_at
+  dbt_medallion:
+    +target_schema: snapshots
+    +docs:
+      node_color: '#9370DB'

@@ -2,56 +2,164 @@ name: dbt CI/CD
 
 on:
   push:
-    branches: [ main, develop ]
+    branches:
+      - 'feature/**'
+      - 'fix/**'
+      - 'chore/**'
+      - master
   pull_request:
-    branches: [ main ]
+    branches:
+      - master
 
+env:
+  DBT_PROFILES_DIR: .
+  PYTHON_VERSION: '3.11'
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CI JOB — runs on feature/* pushes and pull requests to master
+# Scope: only modified models + downstream, against dev target (slim CI)
+# ─────────────────────────────────────────────────────────────────────────────
 jobs:
-  dbt:
+  ci:
+    name: dbt CI (slim build)
     runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/master'
+
     permissions:
       contents: read
       id-token: write
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
 
-    - name: Authenticate to GCP (OIDC)
-      uses: google-github-actions/auth@v1
-      with:
-        workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-        service_account_email: ${{ secrets.GCP_SA_EMAIL }}
+      - name: Authenticate to GCP (OIDC)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
 
-    - name: Set up gcloud
-      uses: google-github-actions/setup-gcloud@v1
-      with:
-        project_id: ${{ secrets.GCP_PROJECT_ID }}
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-    - name: Install dbt
-      run: |
-        pip install dbt-bigquery
+      - name: Install dbt
+        run: pip install dbt-bigquery==1.8.3
 
-    - name: dbt deps
-      run: dbt deps
+      - name: dbt deps
+        run: dbt deps
 
-    - name: dbt build
-      run: dbt build --target dev
-      env:
-        DBT_PROFILES_DIR: .
+      - name: Download prod manifest (for slim CI)
+        # Downloads the last successful prod manifest so state:modified works.
+        # Falls back gracefully if no manifest exists yet (first-run scenario).
+        run: |
+          mkdir -p ./prod_manifest
+          gsutil cp gs://${{ secrets.GCS_BUCKET }}/dbt/prod/manifest.json ./prod_manifest/manifest.json \
+            || echo "No prod manifest found — running full build"
+        continue-on-error: true
 
-    - name: dbt test
-      run: dbt test --target dev
-      env:
-        DBT_PROFILES_DIR: .
+      - name: dbt parse (validate project)
+        run: dbt parse --target dev
 
-    - name: dbt docs generate
-      run: dbt docs generate --target dev
-      env:
-        DBT_PROFILES_DIR: .
+      - name: dbt source freshness
+        run: dbt source freshness --target dev
+        continue-on-error: true
+
+      - name: dbt build (slim — modified + downstream)
+        run: |
+          if [ -f "./prod_manifest/manifest.json" ]; then
+            dbt build \
+              --target dev \
+              --select state:modified+ \
+              --defer \
+              --state ./prod_manifest \
+              --threads 8
+          else
+            dbt build --target dev --threads 8
+          fi
+
+      - name: Upload CI manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-manifest-${{ github.run_id }}
+          path: target/manifest.json
+          retention-days: 7
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # CD JOB — runs ONLY on push to master
+  # Scope: full build against prod target
+  # ─────────────────────────────────────────────────────────────────────────────
+  deploy_prod:
+    name: dbt Deploy (production)
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/master'
+    environment: production
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Authenticate to GCP (OIDC)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SA_EMAIL }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Install dbt
+        run: pip install dbt-bigquery==1.8.3
+
+      - name: dbt deps
+        run: dbt deps
+
+      - name: dbt seed
+        run: dbt seed --target prod
+
+      - name: dbt snapshot
+        run: dbt snapshot --target prod
+
+      - name: dbt build (full production)
+        run: dbt build --target prod --threads 8
+
+      - name: Upload prod manifest to GCS
+        if: success()
+        run: |
+          gsutil cp target/manifest.json gs://${{ secrets.GCS_BUCKET }}/dbt/prod/manifest.json
+
+      - name: dbt docs generate
+        if: success()
+        run: dbt docs generate --target prod
+
+      - name: Upload docs artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dbt-docs-${{ github.run_id }}
+          path: target/
+          retention-days: 30

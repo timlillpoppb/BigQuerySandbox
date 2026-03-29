@@ -1,0 +1,88 @@
+version: 2
+
+models:
+
+  - name: slv_users
+    description: >
+      Cleaned subscriber master. Derives cohort_month, age_band, acquisition_channel,
+      and is_paid_acquisition from raw user data. One row per user.
+    columns:
+      - name: user_id
+        tests: [unique, not_null]
+      - name: email
+        tests: [unique, not_null]
+      - name: cohort_month
+        description: First day of the month the user registered — used for cohort analysis.
+        tests: [not_null]
+      - name: acquisition_channel
+        tests: [not_null]
+      - name: age_band
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['gen_z', 'millennial', 'gen_x', 'boomer_plus']
+
+  - name: slv_orders
+    description: >
+      Normalized order headers. Adds is_completed, is_refunded, hours_to_ship,
+      hours_to_deliver, and order_month. One row per order.
+    columns:
+      - name: order_id
+        tests: [unique, not_null]
+      - name: user_id
+        tests: [not_null]
+      - name: status
+        tests:
+          - accepted_values:
+              values: ['complete', 'cancelled', 'returned', 'shipped', 'processing']
+      - name: order_month
+        tests: [not_null]
+
+  - name: slv_order_items
+    description: >
+      Enriched order line items. Joins to products and inventory to add category,
+      brand, cost, gross margin, and return flag. One row per line item.
+    columns:
+      - name: order_item_id
+        tests: [unique, not_null]
+      - name: order_id
+        tests: [not_null]
+      - name: sale_price
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 10000
+
+  - name: slv_products
+    description: >
+      Cleaned product catalog enriched with distribution center name and
+      standard margin metrics.
+    columns:
+      - name: product_id
+        tests: [unique, not_null]
+      - name: product_name
+        tests: [not_null]
+      - name: category
+        tests: [not_null]
+
+  - name: slv_events
+    description: >
+      Cleaned clickstream events with normalized acquisition_channel and
+      session_event_rank for first/last touch attribution.
+    columns:
+      - name: event_id
+        tests: [unique, not_null]
+      - name: session_id
+        tests: [not_null]
+      - name: event_type
+        tests: [not_null]
+
+  - name: slv_inventory_items
+    description: >
+      Cleaned inventory ledger with is_sold flag and days_in_inventory calculation.
+    columns:
+      - name: inventory_item_id
+        tests: [unique, not_null]
+      - name: product_id
+        tests: [not_null]

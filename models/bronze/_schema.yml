@@ -1,0 +1,152 @@
+version: 2
+
+models:
+
+  - name: brz_users
+    description: >
+      Raw user/subscriber records ingested from the thelook_ecommerce public dataset.
+      One row per registered user. This is the subscriber master for all downstream
+      churn, cohort, and LTV analysis.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: user_id
+        description: Surrogate user key (PK).
+        data_type: int64
+        constraints: [{ type: not_null }]
+        tests: [unique, not_null]
+      - name: email
+        description: User email — unique identifier.
+        data_type: string
+        constraints: [{ type: not_null }]
+        tests: [unique, not_null]
+      - name: created_at
+        description: Registration timestamp.
+        data_type: timestamp
+        constraints: [{ type: not_null }]
+        tests: [not_null]
+      - name: country
+        data_type: string
+      - name: traffic_source
+        data_type: string
+      - name: _loaded_at
+        description: Timestamp when this row was loaded by dbt.
+        data_type: timestamp
+        constraints: [{ type: not_null }]
+      - name: _dbt_run_id
+        description: dbt invocation ID for lineage tracking.
+        data_type: string
+      - name: _source_model
+        description: Name of the dbt model that produced this row.
+        data_type: string
+
+  - name: brz_orders
+    description: >
+      Raw order headers. Incrementally loaded, partitioned by created_date.
+      Each row represents one order. Multiple orders per user are the basis
+      for subscription/recurrence classification.
+    columns:
+      - name: order_id
+        description: Surrogate order key (PK).
+        tests: [unique, not_null]
+      - name: user_id
+        description: FK to brz_users.user_id.
+        tests: [not_null]
+      - name: status
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['complete', 'cancelled', 'returned', 'shipped', 'processing']
+      - name: created_date
+        description: Partition column — date portion of created_at.
+        tests: [not_null]
+      - name: created_at
+        tests: [not_null]
+
+  - name: brz_order_items
+    description: >
+      Raw order line items. One row per product per order. Partitioned by created_date.
+      Sale price is the revenue driver for MRR calculations.
+    columns:
+      - name: order_item_id
+        description: Surrogate line item key (PK).
+        tests: [unique, not_null]
+      - name: order_id
+        tests: [not_null]
+      - name: user_id
+        tests: [not_null]
+      - name: product_id
+        tests: [not_null]
+      - name: sale_price
+        description: Actual revenue for this line item.
+        tests: [not_null]
+
+  - name: brz_products
+    description: Product catalog from thelook. Used to enrich order items with category/brand.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: product_id
+        description: Surrogate product key (PK).
+        data_type: int64
+        constraints: [{ type: not_null }]
+        tests: [unique, not_null]
+      - name: product_name
+        data_type: string
+        constraints: [{ type: not_null }]
+        tests: [not_null]
+      - name: category
+        data_type: string
+        constraints: [{ type: not_null }]
+      - name: brand
+        data_type: string
+      - name: department
+        data_type: string
+      - name: sku
+        data_type: string
+      - name: cost
+        data_type: float64
+      - name: retail_price
+        data_type: float64
+      - name: distribution_center_id
+        data_type: int64
+      - name: _loaded_at
+        data_type: timestamp
+      - name: _dbt_run_id
+        data_type: string
+      - name: _source_model
+        data_type: string
+
+  - name: brz_events
+    description: >
+      High-volume user clickstream events. Partitioned by event_date.
+      Used for session aggregation and funnel analysis.
+    columns:
+      - name: event_id
+        tests: [unique, not_null]
+      - name: user_id
+        tests: [not_null]
+      - name: session_id
+        tests: [not_null]
+      - name: event_type
+        tests: [not_null]
+      - name: event_date
+        tests: [not_null]
+
+  - name: brz_inventory_items
+    description: Inventory ledger. Partitioned by created_date. Used for COGS/margin analysis.
+    columns:
+      - name: inventory_item_id
+        tests: [unique, not_null]
+      - name: product_id
+        tests: [not_null]
+
+  - name: brz_distribution_centers
+    description: Warehouse/distribution center master. Small static lookup table.
+    columns:
+      - name: distribution_center_id
+        tests: [unique, not_null]
+      - name: distribution_center_name
+        tests: [not_null]
