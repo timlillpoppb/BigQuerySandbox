@@ -9,6 +9,7 @@
             'granularity': 'day'
         },
         cluster_by = ['user_sk', 'billing_month'],
+        on_schema_change = 'fail',
         tags = ['gold', 'fact', 'orders']
     )
 }}
