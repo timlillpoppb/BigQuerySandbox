@@ -1,0 +1,264 @@
+version: 2
+
+models:
+
+  # ── Dimensions ──────────────────────────────────────────────────────────────
+
+  - name: dim_users
+    description: >
+      Subscriber dimension with current profile, subscription classification,
+      and lifetime order/revenue metrics. SCD2-aware via snap_users.
+      The is_subscriber, subscriber_status, and customer_segment columns
+      drive all subscription analytics downstream.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: user_sk
+        description: Surrogate key (SHA256 of user_id).
+        data_type: string
+        constraints: [{ type: not_null }]
+        tests: [unique, not_null]
+      - name: user_id
+        data_type: int64
+        constraints: [{ type: not_null }]
+        tests: [unique, not_null]
+      - name: email
+        data_type: string
+        tests: [unique, not_null]
+      - name: cohort_month
+        data_type: date
+        tests: [not_null]
+      - name: subscriber_status
+        data_type: string
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['active', 'churned', 'never_ordered']
+      - name: customer_segment
+        data_type: string
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['high_value', 'standard', 'low_value']
+      - name: acquisition_channel
+        data_type: string
+      - name: is_subscriber
+        data_type: bool
+      - name: lifetime_revenue
+        data_type: float64
+      - name: total_orders
+        data_type: int64
+      - name: days_since_last_order
+        data_type: int64
+
+  - name: dim_products
+    description: >
+      Product dimension enriched with sales performance metrics and SCD2-aware
+      price history via snap_products.
+    columns:
+      - name: product_sk
+        tests: [unique, not_null]
+      - name: product_id
+        tests: [unique, not_null]
+      - name: product_name
+        tests: [not_null]
+      - name: category
+        tests: [not_null]
+
+  - name: dim_date
+    description: >
+      Standard date dimension spanning 2018-01-01 to 2030-12-31.
+      Generated via dbt_date. Covers all thelook transaction history.
+    columns:
+      - name: date_id
+        tests: [unique, not_null]
+      - name: date_day
+        tests: [unique, not_null]
+
+  - name: dim_distribution_centers
+    description: Distribution center/warehouse master. Small static reference table.
+    columns:
+      - name: distribution_center_sk
+        tests: [unique, not_null]
+      - name: distribution_center_id
+        tests: [unique, not_null]
+
+  # ── Facts ────────────────────────────────────────────────────────────────────
+
+  - name: fct_orders
+    description: >
+      Central fact table. One row per order with line-item revenue rolled up.
+      Partitioned by order_date, clustered by user_sk and order_month.
+      Carries subscription classification flags from dim_users.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: order_sk
+        description: Surrogate key.
+        data_type: string
+        constraints: [{ type: not_null }]
+        tests: [unique, not_null]
+      - name: order_id
+        data_type: int64
+        constraints: [{ type: not_null }]
+        tests: [unique, not_null]
+      - name: user_id
+        data_type: int64
+        constraints: [{ type: not_null }]
+        tests: [not_null]
+      - name: order_date
+        data_type: date
+        constraints: [{ type: not_null }]
+        tests: [not_null]
+      - name: order_revenue
+        data_type: float64
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+      - name: is_completed
+        data_type: bool
+      - name: billing_month
+        data_type: date
+
+  - name: fct_order_items
+    description: >
+      Line-item fact. One row per order item with product attributes and margin.
+      Supports category-level revenue decomposition.
+    columns:
+      - name: order_item_sk
+        tests: [unique, not_null]
+      - name: order_item_id
+        tests: [unique, not_null]
+      - name: sale_price
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 10000
+
+  - name: fct_user_sessions
+    description: >
+      Session-level fact aggregated from clickstream events.
+      One row per session with funnel metrics (product views, cart adds, purchases).
+    columns:
+      - name: session_sk
+        tests: [unique, not_null]
+      - name: session_id
+        tests: [not_null]
+      - name: session_duration_sec
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+
+  # ── Reports ──────────────────────────────────────────────────────────────────
+
+  - name: rpt_mrr
+    description: >
+      Monthly Recurring Revenue at user × month granularity.
+      Includes MRR movement classification (new, retained, expansion, contraction, churned)
+      and contribution fields for easy roll-up aggregations.
+    columns:
+      - name: revenue_month
+        tests: [not_null]
+      - name: user_id
+        tests: [not_null]
+      - name: monthly_revenue
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+      - name: mrr_movement_type
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['new', 'retained', 'expansion', 'contraction', 'churned']
+
+  - name: rpt_churn
+    description: >
+      Monthly churn metrics by customer segment. Includes subscriber churn rate,
+      revenue churn rate, net revenue retention (NRR), and net subscriber change.
+    columns:
+      - name: cohort_month
+        tests: [not_null]
+      - name: customer_segment
+        tests: [not_null]
+      - name: subscriber_churn_rate
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 1
+                row_condition: "subscriber_churn_rate is not null"
+
+  - name: rpt_cohort_retention
+    description: >
+      Cohort retention matrix. One row per cohort × period_number.
+      Pivot-ready for BI tools. retention_rate = % of cohort still active.
+    columns:
+      - name: cohort_month
+        tests: [not_null]
+      - name: period_number
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+      - name: retention_rate
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 1
+
+  - name: rpt_customer_ltv
+    description: >
+      Customer LTV analysis. One row per user with observed LTV, predicted 12-month LTV,
+      AOV, purchase frequency, RFM scores, and average days between orders.
+    columns:
+      - name: user_id
+        tests: [unique, not_null]
+      - name: observed_ltv
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+
+  - name: rpt_product_analytics
+    description: Product performance with revenue rank, margin, and return rate.
+    columns:
+      - name: product_id
+        tests: [unique, not_null]
+
+  - name: rpt_subscription_health
+    description: >
+      Executive KPI table. One row per calendar month with MRR, ARR, subscriber counts,
+      churn rates, NRR, ARPU, and session funnel metrics.
+    columns:
+      - name: revenue_month
+        tests: [unique, not_null]
+
+  - name: rpt_cac_and_payback
+    description: >
+      CAC proxy and payback period analysis by acquisition channel and cohort.
+      Includes LTV:CAC ratio, estimated payback months, and RFM composite score.
+    columns:
+      - name: cohort_month
+        tests: [not_null]
+      - name: acquisition_channel
+        tests: [not_null]
+
+  - name: rpt_revenue_by_segment
+    description: >
+      Revenue decomposition by customer segment, acquisition channel, age band,
+      country, product category, and department. Used for contribution margin analysis.
+    columns:
+      - name: billing_month
+        tests: [not_null]

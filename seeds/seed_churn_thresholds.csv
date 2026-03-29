@@ -1,0 +1,4 @@
+segment,churn_days,ltv_target_usd
+high_value,120,500
+standard,90,150
+low_value,60,50

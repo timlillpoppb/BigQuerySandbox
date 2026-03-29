@@ -3,28 +3,25 @@ dbt_medallion:
   outputs:
     dev:
       type: bigquery
-      method: service-account
-      project: your-gcp-project-id
+      method: oauth
+      project: project-2ac71b10-d4cb-403a-b2c
       dataset: dev_dataset
       threads: 4
-      keyfile: /path/to/service-account.json
-      location: US
+      location: us-east5
       priority: interactive
     staging:
       type: bigquery
-      method: service-account
-      project: your-gcp-project-id
+      method: oauth
+      project: project-2ac71b10-d4cb-403a-b2c
       dataset: staging_dataset
       threads: 4
-      keyfile: /path/to/service-account.json
-      location: US
+      location: us-east5
       priority: batch
     prod:
       type: bigquery
-      method: service-account
-      project: your-gcp-project-id
+      method: oauth
+      project: project-2ac71b10-d4cb-403a-b2c
       dataset: prod_dataset
       threads: 4
-      keyfile: /path/to/service-account.json
-      location: US
+      location: us-east5
       priority: batch

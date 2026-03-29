@@ -1,24 +1,57 @@
 version: 2
 
 exposures:
-  - name: transaction_facts
-    type: dashboard
-    maturity: high
-    url: https://bi-tool.com/dashboards/transactions
-    description: Transaction facts for analytics
-    depends_on:
-      - ref('fct_transactions')
-    owner:
-      name: Data Team
-      email: data@company.com
 
-  - name: entity_dimensions
+  - name: subscription_executive_dashboard
     type: dashboard
     maturity: high
-    url: https://bi-tool.com/dimensions/entities
-    description: Entity dimensions with history
-    depends_on:
-      - ref('dim_entities')
     owner:
-      name: Data Team
-      email: data@company.com
+      name: Analytics Team
+      email: analytics@company.com
+    description: >
+      C-suite subscription health dashboard showing MRR, ARR, churn rate,
+      NRR, ARPU, and net subscriber growth on a monthly cadence.
+    depends_on:
+      - ref('rpt_subscription_health')
+      - ref('rpt_mrr')
+      - ref('rpt_churn')
+
+  - name: cohort_retention_analysis
+    type: analysis
+    maturity: high
+    owner:
+      name: Growth Team
+      email: growth@company.com
+    description: >
+      Cohort retention heatmap showing percentage of subscribers still active
+      N months after acquisition. Drives acquisition channel investment decisions.
+    depends_on:
+      - ref('rpt_cohort_retention')
+      - ref('rpt_cac_and_payback')
+
+  - name: customer_ltv_model
+    type: ml
+    maturity: medium
+    owner:
+      name: Data Science Team
+      email: data-science@company.com
+    description: >
+      Customer lifetime value predictions and RFM scoring. Used to train
+      propensity-to-churn and upsell models.
+    depends_on:
+      - ref('rpt_customer_ltv')
+      - ref('dim_users')
+
+  - name: product_performance_dashboard
+    type: dashboard
+    maturity: high
+    owner:
+      name: Product Team
+      email: product@company.com
+    description: >
+      Product analytics dashboard with category revenue, margin, return rates,
+      and revenue rank. Used for merchandising and inventory decisions.
+    depends_on:
+      - ref('rpt_product_analytics')
+      - ref('rpt_revenue_by_segment')
+      - ref('dim_products')

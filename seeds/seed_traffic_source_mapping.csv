@@ -1,0 +1,8 @@
+raw_traffic_source,normalized_channel,is_paid
+Organic,organic_search,false
+Search,paid_search,true
+Email,email,false
+Social,social,true
+Display,display,true
+Adwords,paid_search,true
+Facebook,social,true

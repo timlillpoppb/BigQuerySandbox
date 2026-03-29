@@ -87,6 +87,24 @@ make docs-serve        # Serve docs
 make clean             # Clean target
 ```
 
+## BigQuery auth (no service-account key file)
+
+Your org policy blocks `iam.disableServiceAccountKeyCreation`; use OAuth/ADC or OIDC.
+
+- `profiles.yml` should use:
+  - `method: oauth`
+  - no `keyfile`
+
+- GitHub secrets:
+  - `GCP_PROJECT_ID`
+  - `GCP_WORKLOAD_IDENTITY_PROVIDER`
+  - `GCP_SA_EMAIL`
+
+- Workflow steps (from `.github/workflows/dbt.yml`):
+  - `google-github-actions/auth@v1`
+  - `google-github-actions/setup-gcloud@v1`
+  - `dbt deps`, `dbt build --target dev`, `dbt test --target dev`
+
 ## Direct dbt Commands
 
 If you prefer direct dbt commands or need advanced options:
