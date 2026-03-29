@@ -103,7 +103,6 @@ jobs:
     name: dbt Deploy (production)
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/master'
-    environment: production
 
     permissions:
       contents: read

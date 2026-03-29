@@ -34,13 +34,15 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['active', 'churned', 'never_ordered']
+              arguments:
+                values: ['active', 'churned', 'never_ordered']
       - name: customer_segment
         data_type: string
         tests:
           - not_null
           - accepted_values:
-              values: ['high_value', 'standard', 'low_value']
+              arguments:
+                values: ['high_value', 'standard', 'low_value']
       - name: acquisition_channel
         data_type: string
       - name: is_subscriber
@@ -116,7 +118,8 @@ models:
         data_type: float64
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
+              arguments:
+                min_value: 0
       - name: is_completed
         data_type: bool
       - name: billing_month
@@ -135,8 +138,9 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 10000
+              arguments:
+                min_value: 0
+                max_value: 10000
 
   - name: fct_user_sessions
     description: >
@@ -150,7 +154,8 @@ models:
       - name: session_duration_sec
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
+              arguments:
+                min_value: 0
 
   # ── Reports ──────────────────────────────────────────────────────────────────
 
@@ -167,12 +172,14 @@ models:
       - name: monthly_revenue
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
+              arguments:
+                min_value: 0
       - name: mrr_movement_type
         tests:
           - not_null
           - accepted_values:
-              values: ['new', 'retained', 'expansion', 'contraction', 'churned']
+              arguments:
+                values: ['new', 'retained', 'expansion', 'contraction', 'churned']
 
   - name: rpt_churn
     description: >
@@ -186,9 +193,10 @@ models:
       - name: subscriber_churn_rate
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 1
-              row_condition: "subscriber_churn_rate is not null"
+              arguments:
+                min_value: 0
+                max_value: 1
+                row_condition: "subscriber_churn_rate is not null"
 
   - name: rpt_cohort_retention
     description: >
@@ -201,12 +209,14 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
+              arguments:
+                min_value: 0
       - name: retention_rate
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 1
+              arguments:
+                min_value: 0
+                max_value: 1
 
   - name: rpt_customer_ltv
     description: >
@@ -218,7 +228,8 @@ models:
       - name: observed_ltv
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
+              arguments:
+                min_value: 0
 
   - name: rpt_product_analytics
     description: Product performance with revenue rank, margin, and return rate.

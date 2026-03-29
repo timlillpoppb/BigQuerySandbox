@@ -57,7 +57,8 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['complete', 'cancelled', 'returned', 'shipped', 'processing']
+              arguments:
+                values: ['complete', 'cancelled', 'returned', 'shipped', 'processing']
       - name: created_date
         description: Partition column — date portion of created_at.
         tests: [not_null]

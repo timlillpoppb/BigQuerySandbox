@@ -20,7 +20,8 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['gen_z', 'millennial', 'gen_x', 'boomer_plus']
+              arguments:
+                values: ['gen_z', 'millennial', 'gen_x', 'boomer_plus']
 
   - name: slv_orders
     description: >
@@ -34,7 +35,8 @@ models:
       - name: status
         tests:
           - accepted_values:
-              values: ['complete', 'cancelled', 'returned', 'shipped', 'processing']
+              arguments:
+                values: ['complete', 'cancelled', 'returned', 'shipped', 'processing']
       - name: order_month
         tests: [not_null]
 
@@ -51,8 +53,9 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 10000
+              arguments:
+                min_value: 0
+                max_value: 10000
 
   - name: slv_products
     description: >

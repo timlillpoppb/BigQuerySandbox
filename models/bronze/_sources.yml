@@ -9,15 +9,17 @@ sources:
       subscription/recurring revenue platform to derive MRR, churn, cohort
       retention, and customer lifetime value analytics.
     loader: bigquery_public_data
-    tags: ['source', 'thelook']
+    config:
+      tags: ['source', 'thelook']
 
     tables:
       - name: users
         description: Customer master — one row per registered user/subscriber.
-        loaded_at_field: created_at
-        freshness:
-          warn_after: {count: 48, period: hour}
-          error_after: {count: 168, period: hour}
+        config:
+          loaded_at_field: created_at
+          freshness:
+            warn_after: {count: 48, period: hour}
+            error_after: {count: 168, period: hour}
         columns:
           - name: id
             description: Surrogate user key.
@@ -31,10 +33,11 @@ sources:
 
       - name: orders
         description: Order header — one row per order placed by a user.
-        loaded_at_field: created_at
-        freshness:
-          warn_after: {count: 24, period: hour}
-          error_after: {count: 72, period: hour}
+        config:
+          loaded_at_field: created_at
+          freshness:
+            warn_after: {count: 24, period: hour}
+            error_after: {count: 72, period: hour}
         columns:
           - name: order_id
             description: Surrogate order key.
@@ -47,14 +50,16 @@ sources:
             tests:
               - not_null
               - accepted_values:
-                  values: ['complete', 'cancelled', 'returned', 'shipped', 'processing']
+                  arguments:
+                    values: ['complete', 'cancelled', 'returned', 'shipped', 'processing']
 
       - name: order_items
         description: Order line items — one row per product per order.
-        loaded_at_field: created_at
-        freshness:
-          warn_after: {count: 24, period: hour}
-          error_after: {count: 72, period: hour}
+        config:
+          loaded_at_field: created_at
+          freshness:
+            warn_after: {count: 24, period: hour}
+            error_after: {count: 72, period: hour}
         columns:
           - name: id
             description: Surrogate line item key.
@@ -84,10 +89,11 @@ sources:
         description: >
           User clickstream events — one row per user action. High-volume append-only table.
           Used to derive session analytics and funnel metrics.
-        loaded_at_field: created_at
-        freshness:
-          warn_after: {count: 6, period: hour}
-          error_after: {count: 24, period: hour}
+        config:
+          loaded_at_field: created_at
+          freshness:
+            warn_after: {count: 6, period: hour}
+            error_after: {count: 24, period: hour}
         columns:
           - name: id
             description: Surrogate event key.
@@ -101,10 +107,11 @@ sources:
 
       - name: inventory_items
         description: Inventory ledger — one row per inventory unit.
-        loaded_at_field: created_at
-        freshness:
-          warn_after: {count: 48, period: hour}
-          error_after: {count: 168, period: hour}
+        config:
+          loaded_at_field: created_at
+          freshness:
+            warn_after: {count: 48, period: hour}
+            error_after: {count: 168, period: hour}
         columns:
           - name: id
             description: Surrogate inventory key.
