@@ -10,6 +10,16 @@ on:
   pull_request:
     branches:
       - master
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'dbt target to deploy to'
+        required: true
+        default: 'prod'
+        type: choice
+        options:
+          - prod
+          - staging
 
 env:
   DBT_PROFILES_DIR: .
@@ -102,7 +112,7 @@ jobs:
   deploy_prod:
     name: dbt Deploy (production)
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master' || github.event_name == 'workflow_dispatch'
 
     permissions:
       contents: read
@@ -138,22 +148,22 @@ jobs:
         run: dbt deps
 
       - name: dbt seed
-        run: dbt seed --target prod
+        run: dbt seed --target ${{ inputs.target || 'prod' }}
 
       - name: dbt snapshot
-        run: dbt snapshot --target prod
+        run: dbt snapshot --target ${{ inputs.target || 'prod' }}
 
       - name: dbt build (full production)
-        run: dbt build --target prod --threads 8
+        run: dbt build --target ${{ inputs.target || 'prod' }} --threads 8
 
       - name: Upload prod manifest to GCS
         if: success()
         run: |
-          gsutil cp target/manifest.json gs://${{ secrets.GCS_BUCKET }}/dbt/prod/manifest.json
+          gsutil cp target/manifest.json gs://${{ secrets.GCS_BUCKET }}/dbt/${{ inputs.target || 'prod' }}/manifest.json
 
       - name: dbt docs generate
         if: success()
-        run: dbt docs generate --target prod
+        run: dbt docs generate --target ${{ inputs.target || 'prod' }}
 
       - name: Upload docs artifact
         if: success()
