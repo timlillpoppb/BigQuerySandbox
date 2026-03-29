@@ -14,6 +14,77 @@ This cheat sheet provides all essential dbt commands for the Medallion Architect
 .\.venv\Scripts\python.exe -m dbt.cli.main deps
 ```
 
+## Make Commands (Recommended)
+
+For convenience, this project includes comprehensive make commands. Use these instead of direct dbt commands:
+
+### Quick Commands
+```bash
+make build          # Build all (run + test)
+make test           # Run all tests
+make run            # Run all models
+make docs           # Generate docs
+make help           # Show all commands
+```
+
+### Layer-Specific Commands
+```bash
+make run-bronze     # Run bronze layer
+make run-silver     # Run silver layer
+make run-gold       # Run gold layer
+make run-staging    # Run staging models
+make run-facts      # Run fact tables
+make run-dims       # Run dimensions
+
+make build-bronze   # Build bronze layer
+make build-silver   # Build silver layer
+make build-gold     # Build gold layer
+
+make test-bronze    # Test bronze layer
+make test-silver    # Test silver layer
+make test-gold      # Test gold layer
+```
+
+### Full Refresh & State-Based
+```bash
+make run-full               # Run all with full refresh
+make build-full             # Build all with full refresh
+make state-modified         # Run modified models
+make state-modified-plus    # Run modified + downstream
+make state-build-modified   # Build modified + downstream
+```
+
+### Custom Selection
+```bash
+make run-select SELECT="my_model"     # Run specific model
+make test-select SELECT="my_model"    # Test specific model
+make build-select SELECT="my_model"   # Build specific model
+```
+
+### Environment Targets
+```bash
+make run-dev       # Run in dev
+make run-staging   # Run in staging
+make run-prod      # Run in prod
+```
+
+### Other Operations
+```bash
+make compile           # Dry run
+make snapshot          # Update snapshots
+make seed              # Load seeds
+make source-freshness  # Check freshness
+make debug             # Debug config
+make parse             # Validate project
+make list              # List models
+make docs-serve        # Serve docs
+make clean             # Clean target
+```
+
+## Direct dbt Commands
+
+If you prefer direct dbt commands or need advanced options:
+
 ## Core Commands
 
 ### Model Execution
