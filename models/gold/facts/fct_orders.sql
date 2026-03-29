@@ -8,7 +8,7 @@
             'data_type': 'date',
             'granularity': 'day'
         },
-        cluster_by = ['user_sk', 'order_month'],
+        cluster_by = ['user_sk', 'billing_month'],
         tags = ['gold', 'fact', 'orders']
     )
 }}

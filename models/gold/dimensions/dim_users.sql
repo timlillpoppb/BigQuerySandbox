@@ -45,12 +45,6 @@ revenue_stats as (
     group by 1
 ),
 
-churn_config as (
-    select churn_days from {{ ref('seed_churn_thresholds') }}
-    where segment = 'standard'
-    limit 1
-),
-
 final as (
     select
         -- Surrogate key
@@ -115,7 +109,6 @@ final as (
     from latest_snapshot u
     left join order_stats o    using (user_id)
     left join revenue_stats r  using (user_id)
-    cross join churn_config
 )
 
 select * from final

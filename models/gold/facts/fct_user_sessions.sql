@@ -31,7 +31,6 @@ session_agg as (
         max(created_at)                                             as session_end,
         min(event_date)                                             as session_date,
         count(event_id)                                             as num_events,
-        max(session_event_rank)                                     as max_event_rank,
         any_value(acquisition_channel)                              as acquisition_channel,
         any_value(browser)                                          as browser,
         any_value(city)                                             as city,
