@@ -4,7 +4,7 @@ dbt_medallion:
     dev:
       type: bigquery
       method: oauth
-      project: your-gcp-project-id
+      project: project-2ac71b10-d4cb-403a-b2c
       dataset: dev_dataset
       threads: 4
       location: US
@@ -12,7 +12,7 @@ dbt_medallion:
     staging:
       type: bigquery
       method: oauth
-      project: your-gcp-project-id
+      project: project-2ac71b10-d4cb-403a-b2c
       dataset: staging_dataset
       threads: 4
       location: US
@@ -20,7 +20,7 @@ dbt_medallion:
     prod:
       type: bigquery
       method: oauth
-      project: your-gcp-project-id
+      project: project-2ac71b10-d4cb-403a-b2c
       dataset: prod_dataset
       threads: 4
       location: US
