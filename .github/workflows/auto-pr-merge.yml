@@ -1,67 +1,19 @@
-name: Auto PR & Merge on feature/bi-dashboard
+# This workflow is no longer needed - PRs are created manually via make pr-and-merge
+# Keeping file for reference but disabled
+
+name: Auto PR & Merge (DISABLED)
 
 on:
-  push:
-    branches:
-      - feature/bi-dashboard
+  # Disabled - using manual PR creation instead
+  workflow_dispatch: # Manual trigger only for testing
 
 permissions:
   pull-requests: write
   contents: write
 
 jobs:
-  create-pr:
+  disabled:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Create PR to master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Check if PR already exists
-          EXISTING_PR=$(gh pr list --base master --head feature/bi-dashboard --json number -q '.[0].number' 2>/dev/null || echo "")
-          
-          if [ -z "$EXISTING_PR" ]; then
-            echo "Creating new PR..."
-            PR_URL=$(gh pr create \
-              --base master \
-              --head feature/bi-dashboard \
-              --title "Deploy: Feature BI Dashboard to Production" \
-              --body "Automated PR from feature/bi-dashboard to master.
-
-## Changes
-- Streamlit dashboard fixes and navigation improvements
-- dbt data pipeline updates
-- Verified table existence and schema compliance
-
-## Checklist
-- [x] All changes committed to feature/bi-dashboard
-- [x] dbt tests passing
-- [ ] Awaiting GitHub Actions CI/CD validation
-
-Once CI/CD checks pass, this PR will auto-merge to master and trigger production deployment.")
-            echo "PR_URL=$PR_URL" >> $GITHUB_ENV
-            echo "Created PR: $PR_URL"
-          else
-            echo "PR #$EXISTING_PR already exists, skipping creation"
-            echo "PR_URL=https://github.com/timlillpoppb/BigQuerySandbox/pull/$EXISTING_PR" >> $GITHUB_ENV
-          fi
-
-      - name: Enable auto-merge
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Get the PR number
-          PR_NUMBER=$(gh pr list --base master --head feature/bi-dashboard --json number -q '.[0].number')
-          
-          if [ ! -z "$PR_NUMBER" ]; then
-            echo "Enabling auto-merge for PR #$PR_NUMBER..."
-            gh pr merge $PR_NUMBER --auto --squash --delete-branch || echo "Auto-merge already enabled or unavailable"
-            echo "Auto-merge enabled: PR will merge automatically when all checks pass"
-          fi
-
-  # This job runs as part of the normal CI/CD workflow
-  # No additional CI step needed - GitHub Actions dbt.yml will handle dbt build/test
+      - name: Disabled
+        run: echo "This workflow is disabled. Use 'make pr-and-merge' instead."
