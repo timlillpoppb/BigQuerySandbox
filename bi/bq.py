@@ -1,14 +1,36 @@
 """Shared BigQuery client and query helpers."""
+
+import os
+
 import streamlit as st
-import pandas    as pd
+import pandas as pd
 from google.cloud import bigquery
+from google.oauth2 import service_account
 
 PROJECT = "project-2ac71b10-d4cb-403a-b2c"
-DATASET = "dev_dataset_gold"
+
+# Dataset resolution order:
+#   1. Streamlit secrets  [bigquery] dataset
+#   2. BQ_DATASET env var (useful for Cloud Run overrides)
+#   3. Default: prod_dataset_gold
+DATASET = st.secrets.get("bigquery", {}).get("dataset") or os.environ.get(
+    "BQ_DATASET", "prod_dataset_gold"
+)
 
 
 @st.cache_resource
 def get_client() -> bigquery.Client:
+    """Return a BigQuery client.
+
+    In Streamlit Cloud: credentials come from the [gcp_service_account] secret.
+    Locally: falls back to Application Default Credentials (gcloud auth).
+    """
+    if "gcp_service_account" in st.secrets:
+        creds = service_account.Credentials.from_service_account_info(
+            st.secrets["gcp_service_account"],
+            scopes=["https://www.googleapis.com/auth/bigquery.readonly"],
+        )
+        return bigquery.Client(project=PROJECT, credentials=creds)
     return bigquery.Client(project=PROJECT)
 
 

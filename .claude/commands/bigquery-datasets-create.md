@@ -66,7 +66,7 @@ for ds_id in datasets_to_create:
     print(f"Created: {ds_id}")
 ```
 
-Use `.venv311/Scripts/python.exe` (or the active venv python) to run this.
+Use `.venv/Scripts/python.exe` (or the active venv python) to run this.
 
 ## Common issues
 

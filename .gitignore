@@ -4,6 +4,12 @@ dbt_packages/
 logs/
 dbt_modules/
 
+# Python virtual environments
+.venv/
+.venv311/
+venv/
+env/
+
 # Python
 __pycache__/
 *.pyc
@@ -36,3 +42,7 @@ Thumbs.db
 
 # BigQuery
 *.json
+
+# Streamlit secrets
+.streamlit/secrets.toml
+bi/.streamlit/secrets.toml

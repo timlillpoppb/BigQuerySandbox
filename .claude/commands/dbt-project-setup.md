@@ -18,24 +18,24 @@ If not 3.11, install it from python.org or via winget: `winget install Python.Py
 ### 2. Create virtual environment
 
 ```bash
-python -m venv .venv311
+python -m venv .venv
 ```
 
 ### 3. Install dbt
 
 ```bash
-./.venv311/Scripts/pip install dbt-bigquery==1.8.3
+./.venv/Scripts/pip install dbt-bigquery==1.8.3
 ```
 
 Verify:
 ```bash
-./.venv311/Scripts/dbt.exe --version
+./.venv/Scripts/dbt.exe --version
 ```
 
 ### 4. Install dbt packages
 
 ```bash
-./.venv311/Scripts/dbt.exe deps
+./.venv/Scripts/dbt.exe deps
 ```
 
 ### 5. Authenticate to GCP
@@ -57,7 +57,7 @@ Then add `~/AppData/Local/Google/Cloud SDK/google-cloud-sdk/bin` to PATH.
 ### 6. Verify BigQuery connection
 
 ```bash
-./.venv311/Scripts/dbt.exe debug --target dev
+./.venv/Scripts/dbt.exe debug --target dev
 ```
 
 All checks should pass. If BigQuery connection fails, check:
@@ -71,7 +71,7 @@ Run `/bigquery-datasets-create` to create all required datasets in the `US` regi
 ### 8. First build
 
 ```bash
-./.venv311/Scripts/dbt.exe build --threads 8 --target dev
+./.venv/Scripts/dbt.exe build --threads 8 --target dev
 ```
 
 Expected result: `PASS=N WARN=11 ERROR=0` (11 warnings are expected public data quality issues).
@@ -89,7 +89,7 @@ Then add `C:\Program Files (x86)\GnuWin32\bin` to PATH (restart terminal after).
 
 ## Common issues
 
-- **`dbt` not found** — activate the venv first: `.\.venv311\Scripts\Activate.ps1`
+- **`dbt` not found** — activate the venv first: `.\.venv\Scripts\Activate.ps1`
 - **ExecutionPolicy error** — run: `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
 - **Quota project warning** — run: `gcloud auth application-default set-quota-project <project-id>`
 - **Dataset not found in location US** — datasets were created in wrong region; run `/bigquery-datasets-create`

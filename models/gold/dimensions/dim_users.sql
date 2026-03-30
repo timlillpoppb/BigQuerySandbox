@@ -48,7 +48,7 @@ revenue_stats as (
 final as (
     select
         -- Surrogate key
-        {{ dbt_utils.generate_surrogate_key(['u.user_id']) }}       as user_sk,
+        {{ dbt_utils.generate_surrogate_key(['u.user_id']) }}           as user_sk,
 
         -- Natural key
         u.user_id,
@@ -63,27 +63,27 @@ final as (
         u.acquisition_channel,
         u.age_band,
         u.cohort_month,
-        u.created_at                                                as registered_at,
+        u.created_at                                                    as registered_at,
 
         -- Order activity
-        coalesce(o.total_orders, 0)                                 as total_orders,
-        coalesce(o.completed_orders, 0)                             as completed_orders,
+        coalesce(o.total_orders, 0)                                     as total_orders,
+        coalesce(o.completed_orders, 0)                                 as completed_orders,
         o.first_order_at,
         o.last_order_at,
         o.first_order_month,
         o.last_order_month,
-        coalesce(o.days_since_last_order, 9999)                    as days_since_last_order,
+        coalesce(o.days_since_last_order, 9999)                         as days_since_last_order,
 
         -- Revenue
-        coalesce(r.lifetime_revenue, 0)                             as lifetime_revenue,
-        coalesce(r.lifetime_gross_margin, 0)                       as lifetime_gross_margin,
-        coalesce(r.avg_order_item_price, 0)                        as avg_order_item_price,
+        coalesce(r.lifetime_revenue, 0)                                 as lifetime_revenue,
+        coalesce(r.lifetime_gross_margin, 0)                            as lifetime_gross_margin,
+        coalesce(r.avg_order_item_price, 0)                             as avg_order_item_price,
 
         -- Subscription classification
         case
             when coalesce(o.total_orders, 0) >= {{ var('min_orders_for_subscriber') }}
             then true else false
-        end                                                         as is_subscriber,
+        end                                                             as is_subscriber,
 
         case
             when coalesce(o.days_since_last_order, 9999) <= {{ var('churn_inactivity_days') }}
@@ -91,14 +91,14 @@ final as (
             when coalesce(o.total_orders, 0) = 0
             then 'never_ordered'
             else 'churned'
-        end                                                         as subscriber_status,
+        end                                                             as subscriber_status,
 
         -- Customer value segment
         case
             when coalesce(r.lifetime_revenue, 0) >= 500 then 'high_value'
             when coalesce(r.lifetime_revenue, 0) >= 150 then 'standard'
             else 'low_value'
-        end                                                         as customer_segment,
+        end                                                             as customer_segment,
 
         -- SCD2 metadata
         u.dbt_scd_id,

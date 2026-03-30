@@ -2,6 +2,7 @@
 TheLook Analytics — PhD-Level BI Dashboard
 Built with Streamlit + Plotly against BigQuery gold layer.
 """
+
 import streamlit as st
 
 st.set_page_config(

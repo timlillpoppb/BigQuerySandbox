@@ -10,7 +10,7 @@ Run `dbt build` and fix all errors iteratively until the build passes. Focus on 
 ### 1. Run the build
 
 ```bash
-./.venv311/Scripts/dbt.exe build --threads 8 --target ${ARGUMENTS:-dev} 2>&1
+./.venv/Scripts/dbt.exe build --threads 8 --target ${ARGUMENTS:-dev} 2>&1
 ```
 
 If the build succeeds with 0 errors, done. Otherwise continue.
@@ -75,7 +75,7 @@ Same fix — downgrade to `warn` in `_sources.yml`. These are inherent to the pu
 
 After fixing a batch of errors, re-run:
 ```bash
-./.venv311/Scripts/dbt.exe build --threads 8 --target dev 2>&1 | grep -E "(FAIL|ERROR|Done\.)"
+./.venv/Scripts/dbt.exe build --threads 8 --target dev 2>&1 | grep -E "(FAIL|ERROR|Done\.)"
 ```
 
 Repeat until: `Done. PASS=N WARN=W ERROR=0`
@@ -84,7 +84,7 @@ Repeat until: `Done. PASS=N WARN=W ERROR=0`
 
 To iterate faster on a single model:
 ```bash
-./.venv311/Scripts/dbt.exe run --select <model_name> --target dev
+./.venv/Scripts/dbt.exe run --select <model_name> --target dev
 ```
 
 ## Notes
