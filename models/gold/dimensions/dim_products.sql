@@ -20,7 +20,7 @@ sales_stats as (
         avg(sale_price)                                             as avg_sale_price,
         sum(gross_margin)                                           as total_gross_margin,
         avg(gross_margin_pct)                                       as avg_gross_margin_pct,
-        count(case when is_returned then 1 end)                    as total_returns,
+        count(case when is_returned then 1 end)                     as total_returns,
         {{ safe_divide(
             'count(case when is_returned then 1 end)',
             'count(order_item_id)'

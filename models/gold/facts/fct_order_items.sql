@@ -14,10 +14,15 @@
 }}
 
 with items as (
-    select * from {{ ref('slv_order_items') }}
-    {% if is_incremental() %}
-        where created_date >= date_sub(current_date(), interval 3 day)
-    {% endif %}
+    select * from (
+        select *,
+            row_number() over (partition by order_item_id order by created_date desc, created_at desc) as row_num
+        from {{ ref('slv_order_items') }}
+        {% if is_incremental() %}
+            where created_date >= date_sub(current_date(), interval 3 day)
+        {% endif %}
+    ) filtered
+    where row_num = 1
 ),
 
 users as (

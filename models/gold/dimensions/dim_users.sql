@@ -23,12 +23,12 @@ order_stats as (
     select
         user_id,
         count(order_id)                                             as total_orders,
-        sum(case when is_completed then 1 else 0 end)              as completed_orders,
+        sum(case when is_completed then 1 else 0 end)               as completed_orders,
         min(created_at)                                             as first_order_at,
         max(created_at)                                             as last_order_at,
         min(order_month)                                            as first_order_month,
         max(order_month)                                            as last_order_month,
-        date_diff(current_date(), date(max(created_at)), day)      as days_since_last_order
+        date_diff(current_date(), date(max(created_at)), day)       as days_since_last_order
     from {{ ref('slv_orders') }}
     group by 1
 ),

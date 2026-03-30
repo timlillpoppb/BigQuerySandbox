@@ -99,6 +99,18 @@ dbt deps
 # 5. Validate connection
 dbt debug
 
+# Windows convenience: use run_dbt.ps1 if make is unavailable
+#   .\run_dbt.ps1 build  OR  .\run_dbt.ps1 run --select bronze
+
+# Optional: make `make` and `dbt` available globally in PowerShell
+# 1) Add GNU make installation path (winget / choco) to user PATH
+#    setx PATH "%PATH%;C:\Program Files (x86)\GnuWin32\bin"
+# 2) Add project virtualenv scripts to user PATH
+#    setx PATH "%PATH%;C:\Users\uktim\OneDrive\Documents\Code\dbt\.venv\Scripts"
+
+# 6. Load seeds
+dbt seed
+
 # 6. Load seeds
 dbt seed
 
