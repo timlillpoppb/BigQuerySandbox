@@ -216,7 +216,7 @@ streamlit-restart: ## Kill Streamlit, clear cache, and restart fresh
 # ===== GITHUB PR & DEPLOYMENT =====
 pr-and-merge: ## Create PR, validate CI/CD checks, auto-merge to master and deploy
 	@if not exist .env (echo ERROR: .env file not found. Copy .env.example to .env and add your GITHUB_TOKEN & exit /b 1)
-	@powershell -Command "$$envContent = Get-Content .env -Raw; $$envLines = $$envContent -split '\r?\n'; foreach ($$line in $$envLines) { if ($$line -match '^([^#][^=]+)=(.*)$$' -and $$matches[1] -and $$matches[2]) { [Environment]::SetEnvironmentVariable($$matches[1].Trim(), $$matches[2].Trim()) } }; if (-not $$env:GITHUB_TOKEN) { Write-Host 'ERROR: GITHUB_TOKEN not found in .env file'; exit 1 }; .\.venv\Scripts\python.exe scripts/pr_and_merge.py"
+	powershell -ExecutionPolicy Bypass -File load_env_and_run.ps1
 
 pr-status: ## Check status of current PR (requires gh CLI)
 	@echo Use: make pr-and-merge to automate, or visit PR manually
