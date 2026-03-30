@@ -79,7 +79,7 @@ select
     u.cohort_month,
 
     -- Billing period
-    {{ subscription_period('o.created_at') }}                       as billing_month
+    {{ subscription_period('o.created_at') }}                      as billing_month
 
 from orders o
 left join users u       on o.user_id = u.user_id

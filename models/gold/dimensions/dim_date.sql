@@ -39,9 +39,9 @@ enriched as (
         date_trunc(date_day, quarter)                       as quarter_start,
         date_trunc(date_day, year)                          as year_start,
         case when extract(dayofweek from date_day) in (1, 7)
-             then true else false end                        as is_weekend,
+             then true else false end                       as is_weekend,
         case when extract(dayofweek from date_day) between 2 and 6
-             then true else false end                        as is_weekday
+             then true else false end                       as is_weekday
     from date_spine
 )
 

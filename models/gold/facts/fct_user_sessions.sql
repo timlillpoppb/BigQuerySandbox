@@ -59,7 +59,7 @@ select
     s.session_start,
     s.session_end,
     s.session_date,
-    timestamp_diff(s.session_end, s.session_start, second)         as session_duration_sec,
+    timestamp_diff(s.session_end, s.session_start, second)          as session_duration_sec,
     s.num_events,
     s.acquisition_channel,
     s.browser,

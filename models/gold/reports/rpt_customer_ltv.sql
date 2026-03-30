@@ -88,7 +88,7 @@ select
 
     -- ── Observed LTV metrics ──────────────────────────────────────────────────
     u.lifetime_revenue                                              as observed_ltv,
-    u.lifetime_gross_margin                                        as observed_ltv_gross_margin,
+    u.lifetime_gross_margin                                         as observed_ltv_gross_margin,
     u.avg_order_item_price,
 
     -- Months from first order to last order (tenure)
@@ -99,7 +99,7 @@ select
     )                                                               as tenure_months,
 
     -- Average Order Value (AOV)
-    {{ safe_divide('u.lifetime_revenue', 'u.completed_orders') }}  as avg_order_value,
+    {{ safe_divide('u.lifetime_revenue', 'u.completed_orders') }}   as avg_order_value,
 
     -- Purchase frequency (orders per active month)
     {{ safe_divide('u.completed_orders',
@@ -147,7 +147,7 @@ select
     end                                                             as rfm_monetary_score,
 
     -- Avg days between orders
-    coalesce(oi.avg_days_between_orders, 0)                        as avg_days_between_orders
+    coalesce(oi.avg_days_between_orders, 0)                         as avg_days_between_orders
 
 from users u
 left join monthly_revenue mr  using (user_id)

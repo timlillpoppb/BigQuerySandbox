@@ -17,11 +17,13 @@
     nullif(trim(lower({{ column }})), '')
 {% endmacro %}
 
--- NULL-safe division.
+-- NULL-safe division. Parentheses are required around both arguments to
+-- prevent operator-precedence bugs when callers pass expressions like
+-- 'a - b' as the numerator (without parens, SQL parses: a - b/denominator).
 {% macro safe_divide(numerator, denominator) %}
     case
-        when {{ denominator }} = 0 or {{ denominator }} is null then null
-        else {{ numerator }} / {{ denominator }}
+        when ({{ denominator }}) = 0 or ({{ denominator }}) is null then null
+        else ({{ numerator }}) / ({{ denominator }})
     end
 {% endmacro %}
 
