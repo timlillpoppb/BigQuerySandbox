@@ -9,6 +9,8 @@ Migrate production dbt orchestration from GitHub Actions-only to Cloud Composer 
   - `prod_dataset_ops.dbt_run_summary`
   - `prod_dataset_ops.dbt_run_job_metadata`
 - Bytes are reconciled from `INFORMATION_SCHEMA.JOBS_BY_PROJECT` for billing accuracy.
+- Validation script is available at `scripts/validate_dbt_run_metadata.py`.
+- Composer DAG scaffold is available at `composer/dags/dbt_prod_deploy_with_metadata.py`.
 
 ## Why Phase 2
 Use Composer when orchestration requirements exceed GitHub Actions simplicity:
@@ -37,6 +39,14 @@ Use Composer when orchestration requirements exceed GitHub Actions simplicity:
   - Query `prod_dataset_ops.dbt_run_summary` and `dbt_run_job_metadata` to assert row presence and totals.
 - Task 6: `notify`
   - Send status to Slack/Email (success/failure and bytes summary).
+
+## Repository Deliverables Implemented
+- `composer/dags/dbt_prod_deploy_with_metadata.py`
+  - Composer-ready DAG scaffold with `all_done` metadata logging.
+- `scripts/log_dbt_run_metadata.py`
+  - Shared metadata writer used by GitHub Actions now and Composer later.
+- `scripts/validate_dbt_run_metadata.py`
+  - Shared post-run validator for table existence, byte tie-out, and unit conversion checks.
 
 ## Data Contract (No Change)
 ### `prod_dataset_ops.dbt_run_summary`
