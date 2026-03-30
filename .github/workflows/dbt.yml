@@ -101,4 +101,42 @@ jobs:
         run: dbt deps
 
       - name: dbt build (production)
-        run: dbt build --target prod --threads 4
+        id: run_dbt
+        shell: bash
+        run: |
+          STARTED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          echo "started_at=$STARTED_AT" >> "$GITHUB_OUTPUT"
+
+          DBT_EXIT_CODE=0
+          dbt build --target prod --threads 4 || DBT_EXIT_CODE=$?
+
+          COMPLETED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          echo "completed_at=$COMPLETED_AT" >> "$GITHUB_OUTPUT"
+          echo "exit_code=$DBT_EXIT_CODE" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Log dbt run metadata
+        if: always()
+        run: |
+          python scripts/log_dbt_run_metadata.py \
+            --project-id "${{ secrets.GCP_PROJECT_ID }}" \
+            --location "US" \
+            --target-name "prod" \
+            --target-dataset "prod_dataset" \
+            --metadata-dataset "prod_dataset_ops" \
+            --run-results-path "target/run_results.json" \
+            --run-started-at "${{ steps.run_dbt.outputs.started_at }}" \
+            --run-completed-at "${{ steps.run_dbt.outputs.completed_at }}" \
+            --dbt-exit-code "${{ steps.run_dbt.outputs.exit_code }}" \
+            --github-run-id "${{ github.run_id }}" \
+            --github-sha "${{ github.sha }}" \
+            --github-ref "${{ github.ref_name }}"
+
+      - name: Fail workflow if dbt failed
+        if: always()
+        shell: bash
+        run: |
+          if [ "${{ steps.run_dbt.outputs.exit_code }}" != "0" ]; then
+            echo "dbt build failed with exit code ${{ steps.run_dbt.outputs.exit_code }}"
+            exit 1
+          fi
