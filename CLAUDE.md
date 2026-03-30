@@ -23,7 +23,7 @@ TheLook ecommerce subscription analytics platform. Full dbt medallion architectu
 .venv/Scripts/dbt.exe run --select state:modified  # slim CI
 
 # Streamlit BI dashboard
-.venv/Scripts/streamlit.exe run bi/app.py
+.venv/Scripts/streamlit.exe run bi/0_TheLook_Analytics_Platform.py
 
 # Python formatting
 .venv/Scripts/python.exe -m black bi/
