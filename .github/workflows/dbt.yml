@@ -7,9 +7,37 @@ on:
       - 'fix/**'
       - 'chore/**'
       - master
+    paths:
+      - 'models/**'
+      - 'macros/**'
+      - 'snapshots/**'
+      - 'seeds/**'
+      - 'tests/**'
+      - 'scripts/log_dbt_run_metadata.py'
+      - 'scripts/validate_dbt_run_metadata.py'
+      - 'dbt_project.yml'
+      - 'packages.yml'
+      - 'profiles.yml'
+      - '.github/workflows/dbt.yml'
   pull_request:
     branches:
       - master
+    paths:
+      - 'models/**'
+      - 'macros/**'
+      - 'snapshots/**'
+      - 'seeds/**'
+      - 'tests/**'
+      - 'scripts/log_dbt_run_metadata.py'
+      - 'scripts/validate_dbt_run_metadata.py'
+      - 'dbt_project.yml'
+      - 'packages.yml'
+      - 'profiles.yml'
+      - '.github/workflows/dbt.yml'
+
+concurrency:
+  group: dbt-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 env:
   DBT_PROFILES_DIR: .
@@ -59,7 +87,7 @@ jobs:
         run: dbt parse --target dev
 
       - name: dbt build (quick test)
-        run: dbt build --target dev --threads 4 --select state:modified+
+        run: dbt build --target dev --threads 4 --select tag:report+
 
   # ─────────────────────────────────────────────────────────────────────────────
   # CD JOB — Production deployment on master merge
@@ -131,6 +159,13 @@ jobs:
             --github-run-id "${{ github.run_id }}" \
             --github-sha "${{ github.sha }}" \
             --github-ref "${{ github.ref_name }}"
+
+      - name: Validate metadata capture
+        if: always()
+        run: |
+          python scripts/validate_dbt_run_metadata.py \
+            --project-id "${{ secrets.GCP_PROJECT_ID }}" \
+            --metadata-dataset "prod_dataset_ops"
 
       - name: Fail workflow if dbt failed
         if: always()
