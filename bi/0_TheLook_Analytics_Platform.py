@@ -6,7 +6,7 @@ Built with Streamlit + Plotly against BigQuery gold layer.
 import streamlit as st
 
 st.set_page_config(
-    page_title="TheLook Analytics",
+    page_title="TheLook Analytics Platform",
     page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded",

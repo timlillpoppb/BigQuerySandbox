@@ -42,6 +42,9 @@ help: ## Show this help
 	@echo "Custom selection:"
 	@echo "  run-select SELECT=model, test-select SELECT=model, build-select SELECT=model"
 	@echo ""
+	@echo "Streamlit BI Dashboard:"
+	@echo "  streamlit-restart - Kill, clear cache, and restart Streamlit fresh"
+	@echo ""
 	@echo "Other commands: compile, snapshot, seed, source-freshness, debug, parse, list, docs-serve"
 
 install: ## Install Python dependencies
@@ -200,3 +203,7 @@ build-target-staging: ## Build in staging environment
 
 build-target-prod: ## Build in prod environment
 	$(DBT_EXE) build --target prod
+
+# ===== STREAMLIT BI DASHBOARD =====
+streamlit-restart: ## Kill Streamlit, clear cache, and restart fresh
+	powershell -Command "Get-Process streamlit -ErrorAction SilentlyContinue | Stop-Process -Force; Remove-Item -Path $$env:USERPROFILE\.streamlit\cache -Recurse -Force -ErrorAction SilentlyContinue; Remove-Item -Path $$env:USERPROFILE\.streamlit\secrets -Recurse -Force -ErrorAction SilentlyContinue; cd \"$(CURDIR)\"; .\.venv\Scripts\streamlit.exe run bi/0_TheLook_Analytics_Platform.py"
