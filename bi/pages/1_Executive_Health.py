@@ -2,6 +2,7 @@
 
 import sys
 import pathlib
+import math
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 
@@ -28,9 +29,13 @@ prev = df.iloc[-2] if len(df) > 1 else latest
 
 
 def delta_pct(cur, prv) -> str:
-    if prv and prv != 0:
+    if prv is None or cur is None:
+        return ""
+    if not math.isfinite(float(prv)) or not math.isfinite(float(cur)):
+        return ""
+    if prv != 0:
         return f"{((cur - prv) / abs(prv)) * 100:+.1f}%"
-    return "N/A"
+    return ""
 
 
 # ── KPI Tiles ─────────────────────────────────────────────────────────────────

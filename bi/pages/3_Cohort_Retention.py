@@ -61,6 +61,7 @@ st.markdown("""
 """)
 
 heatmap_z = (pivot.values * 100).round(1)
+heatmap_text = [["" if v != v else f"{v:.1f}%" for v in row] for row in heatmap_z]
 fig_hm = go.Figure(
     go.Heatmap(
         z=heatmap_z,
@@ -74,8 +75,8 @@ fig_hm = go.Figure(
             [0.70, "#86d400"],
             [1.00, "#00c853"],
         ],
-        text=heatmap_z,
-        texttemplate="%{text}%",
+        text=heatmap_text,
+        texttemplate="%{text}",
         textfont=dict(size=10),
         hoverongaps=False,
         colorbar=dict(title="Retention %", ticksuffix="%"),

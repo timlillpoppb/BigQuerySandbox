@@ -215,7 +215,7 @@ with col4:
             y=df_coh.avg_ltv,
             name="Avg LTV",
             marker_color="#4F8BF9",
-            text=df_coh.avg_ltv.map("${:,.2f}".format),
+            text=df_coh.avg_ltv.map(fmt_currency),
             textposition="outside",
         )
     )

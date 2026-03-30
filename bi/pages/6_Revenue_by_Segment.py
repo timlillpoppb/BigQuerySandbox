@@ -82,6 +82,7 @@ with col1:
         )
         .sort_values("gm_pct", ascending=True)
     )
+    df_cat["gm_pct"] = df_cat["gm_pct"].replace([float("inf"), float("-inf")], float("nan"))
     bar_colors = [
         "#4CAF50" if v > 40 else "#FF9800" if v > 25 else "#F44336"
         for v in df_cat.gm_pct
@@ -92,7 +93,7 @@ with col1:
             x=df_cat.gm_pct,
             orientation="h",
             marker_color=bar_colors,
-            text=df_cat.gm_pct.map("{:.1f}%".format),
+            text=df_cat.gm_pct.map(lambda v: "" if v != v else f"{v:.1f}%"),
             textposition="outside",
         )
     )

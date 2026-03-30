@@ -2,6 +2,7 @@
 
 import sys
 import pathlib
+import math
 
 sys.path.insert(0, str(pathlib.Path(__file__).parent.parent))
 
@@ -9,6 +10,17 @@ import streamlit as st
 import plotly.graph_objects as go
 import plotly.express as px
 from bq import run_query, table, fmt_currency, fmt_pct
+
+
+def pct_or_blank(v: float) -> str:
+    if v is None:
+        return ""
+    try:
+        if not math.isfinite(float(v)):
+            return ""
+    except (TypeError, ValueError):
+        return ""
+    return f"{float(v) * 100:.1f}%"
 
 st.set_page_config(page_title="Product Analytics", layout="wide")
 st.title("🛍️ Product Analytics")
@@ -141,12 +153,10 @@ with st.expander("Show full table (sortable)"):
         "overall_revenue_rank",
     ]
     df_disp = df[display_cols].copy()
-    df_disp["total_revenue"] = df_disp.total_revenue.map("${:,.2f}".format)
-    df_disp["avg_sale_price"] = df_disp.avg_sale_price.map("${:,.2f}".format)
-    df_disp["avg_gross_margin_pct"] = (df_disp.avg_gross_margin_pct * 100).round(
-        1
-    ).astype(str) + "%"
-    df_disp["return_rate"] = (df_disp.return_rate * 100).round(1).astype(str) + "%"
+    df_disp["total_revenue"] = df_disp.total_revenue.map(fmt_currency)
+    df_disp["avg_sale_price"] = df_disp.avg_sale_price.map(fmt_currency)
+    df_disp["avg_gross_margin_pct"] = df_disp.avg_gross_margin_pct.map(pct_or_blank)
+    df_disp["return_rate"] = df_disp.return_rate.map(pct_or_blank)
     df_disp.columns = [
         "Product",
         "Category",

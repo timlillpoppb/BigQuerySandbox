@@ -52,9 +52,9 @@ latest = df_total.iloc[-1]
 # ── KPI Tiles ─────────────────────────────────────────────────────────────────
 st.subheader("Latest Month Snapshot")
 c1, c2, c3, c4 = st.columns(4)
-c1.metric("Subscriber Churn Rate", fmt_pct(latest.subscriber_churn_rate or 0))
-c2.metric("Revenue Churn Rate", fmt_pct(latest.revenue_churn_rate or 0))
-c3.metric("NRR", fmt_pct(latest.net_revenue_retention_rate or 0))
+c1.metric("Subscriber Churn Rate", fmt_pct(latest.subscriber_churn_rate))
+c2.metric("Revenue Churn Rate", fmt_pct(latest.revenue_churn_rate))
+c3.metric("NRR", fmt_pct(latest.net_revenue_retention_rate))
 c4.metric(
     "Net Subscriber Change",
     f"{int(latest.new_subscribers - latest.churned_subscribers):+,}",

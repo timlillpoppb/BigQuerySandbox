@@ -1,6 +1,7 @@
 """Shared BigQuery client and query helpers."""
 
 import os
+import math
 
 import streamlit as st
 import pandas as pd
@@ -45,12 +46,31 @@ def table(name: str) -> str:
 
 
 def fmt_currency(v: float) -> str:
-    if v >= 1_000_000:
-        return f"${v / 1_000_000:.2f}M"
-    if v >= 1_000:
-        return f"${v / 1_000:.1f}K"
-    return f"${v:.2f}"
+    if v is None:
+        return ""
+    try:
+        if not math.isfinite(float(v)):
+            return ""
+    except (TypeError, ValueError):
+        return ""
+
+    sign = "-" if float(v) < 0 else ""
+    abs_v = abs(float(v))
+
+    if abs_v >= 1_000_000:
+        return f"{sign}${abs_v / 1_000_000:.2f}M"
+    if abs_v >= 1_000:
+        return f"{sign}${abs_v / 1_000:.1f}K"
+    return f"{sign}${abs_v:.2f}"
 
 
 def fmt_pct(v: float) -> str:
+    if v is None:
+        return ""
+    try:
+        if not math.isfinite(float(v)):
+            return ""
+    except (TypeError, ValueError):
+        return ""
+
     return f"{v * 100:.1f}%"
