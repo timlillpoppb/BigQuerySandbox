@@ -1,0 +1,19 @@
+# This workflow is no longer needed - PRs are created manually via make pr-and-merge
+# Keeping file for reference but disabled
+
+name: Auto PR & Merge (DISABLED)
+
+on:
+  # Disabled - using manual PR creation instead
+  workflow_dispatch: # Manual trigger only for testing
+
+permissions:
+  pull-requests: write
+  contents: write
+
+jobs:
+  disabled:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disabled
+        run: echo "This workflow is disabled. Use 'make pr-and-merge' instead."

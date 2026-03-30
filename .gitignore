@@ -9,6 +9,7 @@ dbt_modules/
 .venv311/
 venv/
 env/
+.env
 
 # Python
 __pycache__/

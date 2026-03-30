@@ -42,6 +42,14 @@ help: ## Show this help
 	@echo "Custom selection:"
 	@echo "  run-select SELECT=model, test-select SELECT=model, build-select SELECT=model"
 	@echo ""
+	@echo "Streamlit BI Dashboard:"
+	@echo "  streamlit-restart - Kill, clear cache, and restart Streamlit fresh"
+	@echo ""
+	@echo "GitHub PR & Deployment:"
+	@echo "  pr-and-merge    - Create PR, validate CI/CD, auto-merge to master and deploy"
+	@echo "                   (Requires: GITHUB_TOKEN environment variable)"
+	@echo "  pr-status       - Monitor deployment progress"
+	@echo ""
 	@echo "Other commands: compile, snapshot, seed, source-freshness, debug, parse, list, docs-serve"
 
 install: ## Install Python dependencies
@@ -200,3 +208,15 @@ build-target-staging: ## Build in staging environment
 
 build-target-prod: ## Build in prod environment
 	$(DBT_EXE) build --target prod
+
+# ===== STREAMLIT BI DASHBOARD =====
+streamlit-restart: ## Kill Streamlit, clear cache, and restart fresh
+	powershell -Command "Get-Process streamlit -ErrorAction SilentlyContinue | Stop-Process -Force; Remove-Item -Path $$env:USERPROFILE\.streamlit\cache -Recurse -Force -ErrorAction SilentlyContinue; Remove-Item -Path $$env:USERPROFILE\.streamlit\secrets -Recurse -Force -ErrorAction SilentlyContinue; cd \"$(CURDIR)\"; .\.venv\Scripts\streamlit.exe run bi/0_TheLook_Analytics_Platform.py"
+
+# ===== GITHUB PR & DEPLOYMENT =====
+pr-and-merge: ## Create PR, validate CI/CD checks, auto-merge to master and deploy
+	@if not exist .env (echo ERROR: .env file not found. Copy .env.example to .env and add your GITHUB_TOKEN & exit /b 1)
+	powershell -ExecutionPolicy Bypass -File load_env_and_run.ps1
+
+pr-status: ## Check status of current PR (requires gh CLI)
+	@echo Use: make pr-and-merge to automate, or visit PR manually
