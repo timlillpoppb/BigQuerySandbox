@@ -38,7 +38,7 @@ Use Composer when orchestration requirements exceed GitHub Actions simplicity:
 - Task 5: `validate_run_capture`
   - Query `prod_dataset_ops.dbt_run_summary` and `dbt_run_job_metadata` to assert row presence and totals.
 - Task 6: `notify`
-  - Send status to Slack/Email (success/failure and bytes summary).
+  - Send status to email only via `DBT_ALERT_EMAIL` environment variable (success/failure and bytes summary).
 
 ## Repository Deliverables Implemented
 - `composer/dags/dbt_prod_deploy_with_metadata.py`

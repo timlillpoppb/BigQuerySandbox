@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from pathlib import Path
 import os
 
 from airflow import DAG
 from airflow.operators.bash import BashOperator
+from airflow.operators.email import EmailOperator
 from airflow.operators.empty import EmptyOperator
 from airflow.operators.python import PythonOperator
 from airflow.utils.trigger_rule import TriggerRule
@@ -17,6 +17,7 @@ DBT_PROJECT_DIR = os.environ.get("DBT_PROJECT_DIR", "/home/airflow/gcs/repo/dbt"
 DBT_PROFILES_DIR = os.environ.get("DBT_PROFILES_DIR", DBT_PROJECT_DIR)
 DBT_PYTHON = os.environ.get("DBT_PYTHON", "/usr/local/bin/python")
 DBT_BIN = os.environ.get("DBT_BIN", "/usr/local/bin/dbt")
+ALERT_EMAIL = os.environ.get("DBT_ALERT_EMAIL", "")
 
 
 def build_metadata_command() -> str:
@@ -30,8 +31,8 @@ def build_metadata_command() -> str:
         f"--metadata-dataset {DEFAULT_METADATA_DATASET} "
         f"--run-results-path target/run_results.json "
         f"--run-started-at '{{{{ ti.xcom_pull(task_ids='prepare_context', key='run_started_at') }}}}' "
-        f"--run-completed-at '{{{{ ti.xcom_pull(task_ids='prepare_context', key='run_completed_at') }}}}' "
-        f"--dbt-exit-code '{{{{ ti.xcom_pull(task_ids='prepare_context', key='dbt_exit_code') }}}}' "
+        f"--run-completed-at '{{{{ ti.xcom_pull(task_ids='finalize_context', key='run_completed_at') }}}}' "
+        f"--dbt-exit-code '{{{{ ti.xcom_pull(task_ids='finalize_context', key='dbt_exit_code') }}}}' "
         f"--github-run-id composer-{{{{ run_id }}}} "
         f"--github-sha '{{{{ dag_run.conf.get('git_sha', '') if dag_run else '' }}}}' "
         f"--github-ref '{{{{ dag_run.conf.get('git_ref', 'composer') if dag_run else 'composer' }}}}'"
@@ -106,6 +107,29 @@ with DAG(
         trigger_rule=TriggerRule.ALL_DONE,
     )
 
+    notify_email = EmailOperator(
+        task_id="notify_email",
+        to=ALERT_EMAIL or "data-platform-alerts@example.com",
+        subject="[Composer] dbt prod deploy {{ dag_run.run_id }} status={{ ti.xcom_pull(task_ids='finalize_context', key='dbt_exit_code') }}",
+        html_content="""
+        <h3>dbt Production Deploy - Cloud Composer</h3>
+        <p><b>DAG:</b> {{ dag.dag_id }}</p>
+        <p><b>Run ID:</b> {{ dag_run.run_id }}</p>
+        <p><b>Started:</b> {{ ti.xcom_pull(task_ids='prepare_context', key='run_started_at') }}</p>
+        <p><b>Completed:</b> {{ ti.xcom_pull(task_ids='finalize_context', key='run_completed_at') }}</p>
+        <p><b>dbt Exit Code:</b> {{ ti.xcom_pull(task_ids='finalize_context', key='dbt_exit_code') }}</p>
+        <p><b>Project:</b> {{ params.project_id }}</p>
+        <p><b>Metadata Dataset:</b> {{ params.metadata_dataset }}</p>
+        <p><b>Log Metadata Task:</b> {{ ti.get_dagrun().get_task_instance('log_run_metadata').state }}</p>
+        <p><b>Validate Capture Task:</b> {{ ti.get_dagrun().get_task_instance('validate_run_capture').state }}</p>
+        """,
+        params={
+            "project_id": DEFAULT_PROJECT_ID,
+            "metadata_dataset": DEFAULT_METADATA_DATASET,
+        },
+        trigger_rule=TriggerRule.ALL_DONE,
+    )
+
     finish = EmptyOperator(task_id="finish", trigger_rule=TriggerRule.ALL_DONE)
 
-    start >> prepare >> dbt_deps >> dbt_build >> finalize >> log_metadata >> validate_capture >> finish
+    start >> prepare >> dbt_deps >> dbt_build >> finalize >> log_metadata >> validate_capture >> notify_email >> finish
