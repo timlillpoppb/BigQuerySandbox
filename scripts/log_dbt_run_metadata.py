@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -67,6 +68,28 @@ def gib(bytes_value: int) -> float:
 
 def tib(bytes_value: int) -> float:
     return bytes_value / (1024.0**4)
+
+
+def to_bq_timestamp(value: Optional[datetime]) -> Optional[str]:
+    if value is None:
+        return None
+    if value.tzinfo is None:
+        value = value.replace(tzinfo=timezone.utc)
+    else:
+        value = value.astimezone(timezone.utc)
+    return value.isoformat().replace("+00:00", "Z")
+
+
+def to_json_value(value: Any) -> Any:
+    if isinstance(value, datetime):
+        return to_bq_timestamp(value)
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    return value
+
+
+def serialize_rows(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    return [{k: to_json_value(v) for k, v in row.items()} for row in rows]
 
 
 def ensure_dataset_and_tables(client: bigquery.Client, project_id: str, metadata_dataset: str) -> None:
@@ -276,12 +299,15 @@ def upsert_rows(
         f"DELETE FROM `{runs_table}` WHERE invocation_id = @invocation_id", job_config=delete_config
     ).result()
 
-    if step_rows:
-        errors = client.insert_rows_json(steps_table, step_rows)
+    serialized_steps = serialize_rows(step_rows)
+    serialized_run = serialize_rows([run_row])
+
+    if serialized_steps:
+        errors = client.insert_rows_json(steps_table, serialized_steps)
         if errors:
             raise RuntimeError(f"Failed inserting step rows: {errors}")
 
-    errors = client.insert_rows_json(runs_table, [run_row])
+    errors = client.insert_rows_json(runs_table, serialized_run)
     if errors:
         raise RuntimeError(f"Failed inserting run row: {errors}")
 
