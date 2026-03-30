@@ -134,8 +134,11 @@ Once CI/CD checks pass, this PR will auto-merge to master and trigger production
     status, result = github_api_call("POST", endpoint_automerge, headers, automerge_data)
     if status in [200, 201]:
         print(f"  Auto-merge enabled")
+        auto_merge_enabled = True
     else:
-        print(f"  Note: Auto-merge may not be available with current permissions")
+        print(f"  Auto-merge failed (status {status}): {result}")
+        print(f"  Will monitor checks and merge manually when ready")
+        auto_merge_enabled = False
     
     # Step 4: Monitor CI/CD
     print(f"[4/4] Monitoring CI/CD checks...")
@@ -176,6 +179,25 @@ Once CI/CD checks pass, this PR will auto-merge to master and trigger production
                     print(f"  Checks in progress... ({elapsed}s)")
                 elif all_passed:
                     print(f"  [OK] All checks passed!")
+                    if not auto_merge_enabled:
+                        # Try to merge the PR manually
+                        print(f"  Merging PR #{pr_number}...")
+                        merge_endpoint = f"/repos/{REPO_OWNER}/{REPO_NAME}/pulls/{pr_number}/merge"
+                        merge_data = {
+                            "merge_method": "squash",
+                            "commit_title": f"Deploy: Feature BI Dashboard",
+                            "commit_message": "Merged to master. Production deployment will commence.",
+                        }
+                        merge_status, merge_result = github_api_call("PUT", merge_endpoint, headers, merge_data)
+                        if merge_status == 200:
+                            print(f"  [OK] PR #{pr_number} merged successfully!")
+                            print("\n=== Deployment Complete ===")
+                            print("GitHub Actions is now deploying to production...")
+                            break
+                        else:
+                            print(f"  [FAIL] Failed to merge PR (status {merge_status}): {merge_result}")
+                            print(f"  Please merge manually: https://github.com/{REPO_OWNER}/{REPO_NAME}/pull/{pr_number}")
+                            break
                 elif any_failed:
                     print(f"  [FAIL] Some checks failed. See PR for details.")
                     print(f"  URL: https://github.com/{REPO_OWNER}/{REPO_NAME}/pull/{pr_number}")
