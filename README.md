@@ -1,190 +1,125 @@
-# dbt Medallion Architecture — TheLook Subscription Analytics
+# BigQuerySandbox — TheLook Subscription Analytics (dbt)
 
-A production-grade, FAANG-level dbt project modeling the BigQuery public dataset
-`bigquery-public-data.thelook_ecommerce` as a subscription/recurring revenue analytics platform.
-
-**Data source:** Google BigQuery Public Data — TheLook E-Commerce
-**Platform:** BigQuery (us-east5) | dbt Core 1.8 | GitHub Actions CI/CD
-**AI Assistant:** Claude (Anthropic) — default for all code review and generation
+A complete dbt medallion pipeline for subscription-style e-commerce analytics, built on BigQuery with GitHub Actions CI/CD.
 
 ---
 
-## Architecture Overview
+## 🚀 Quick Project Summary
 
-```
-bigquery-public-data.thelook_ecommerce
-          │
-          ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │  BRONZE  (raw ingestion, partitioned, clustered)            │
-    │  brz_users  brz_orders  brz_order_items  brz_events        │
-    │  brz_products  brz_inventory_items  brz_distribution_centers│
-    └─────────────────────────────────────────────────────────────┘
-          │
-          ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │  SNAPSHOTS  (SCD Type 2)                                    │
-    │  snap_users    snap_products                                │
-    └─────────────────────────────────────────────────────────────┘
-          │
-          ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │  SILVER  (cleaned, enriched, normalized — views)            │
-    │  slv_users  slv_orders  slv_order_items  slv_products      │
-    │  slv_events  slv_inventory_items                           │
-    └─────────────────────────────────────────────────────────────┘
-          │
-          ▼
-    ┌─────────────────────────────────────────────────────────────┐
-    │  GOLD — Dimensions                                          │
-    │  dim_users  dim_products  dim_date  dim_distribution_centers│
-    │                                                             │
-    │  GOLD — Facts                                               │
-    │  fct_orders  fct_order_items  fct_user_sessions            │
-    │                                                             │
-    │  GOLD — Reports (Subscription KPIs)                        │
-    │  rpt_mrr               Monthly Recurring Revenue           │
-    │  rpt_churn             Churn rate, NRR, revenue churn      │
-    │  rpt_cohort_retention  Retention matrix (pivotable)        │
-    │  rpt_customer_ltv      LTV, AOV, RFM, payback period      │
-    │  rpt_cac_and_payback   CAC proxy, LTV:CAC ratio           │
-    │  rpt_subscription_health  Executive KPI dashboard table    │
-    │  rpt_product_analytics    Product revenue & margin         │
-    │  rpt_revenue_by_segment   Contribution margin view         │
-    └─────────────────────────────────────────────────────────────┘
-```
+- Source dataset: `bigquery-public-data.thelook_ecommerce`
+- Data warehouse: BigQuery (US multi-region)
+- dbt model layers: Bronze -> Snapshots -> Silver -> Gold (facts/dimensions/reports)
+- Key business metrics: MRR, churn, LTV, cohort retention, CAC, RFM
+- CI/CD: GitHub Actions (`.github/workflows/dbt.yml`)
+- PR automation: `make pr-and-merge` + `scripts/pr_and_merge.py`
 
 ---
 
-## Subscription Modeling Logic
+## 🏗 Architecture Layers
 
-This project treats e-commerce repeat purchases as a proxy for subscription behavior:
-
-| Concept | Definition |
-|---|---|
-| **Subscriber** | User with ≥2 completed orders (`min_orders_for_subscriber` var) |
-| **Active** | Last order within 90 days (`churn_inactivity_days` var) |
-| **Churned** | No order in 90+ days |
-| **Billing period** | Calendar month of order (date truncated to month) |
-| **MRR** | Sum of completed order revenue in a calendar month |
-| **NRR** | (Retained MRR + Expansion MRR) / Prior month MRR |
+1. **Bronze**: raw ingest views (`models/bronze/brz_*.sql`)
+2. **Snapshots**: SCD2 history (`snapshots/snap_users.sql`, `snapshots/snap_products.sql`)
+3. **Silver**: cleaned, normalized staging (`models/silver/slv_*.sql`)
+4. **Gold**:
+   - dimensions (`models/gold/dimensions/`)
+   - facts (`models/gold/facts/`)
+   - reports (`models/gold/reports/`)
 
 ---
 
-## Quickstart
+## 📦 Core Reports and KPIs
 
-### Prerequisites
+- `rpt_mrr`: monthly recurring revenue
+- `rpt_churn`: churn and NRR
+- `rpt_cohort_retention`: cohort retention matrix
+- `rpt_customer_ltv`: customer lifetime value, RFM, payback
+- `rpt_cac_and_payback`: CAC proxy and payback analysis
+- `rpt_revenue_by_segment`: segment-level revenue and contribution
+- `rpt_product_analytics`: product revenue and demand insights
+- `rpt_subscription_health`: executive-quality KPI snapshot
 
+---
+
+## 🛠 Key Files
+
+- `dbt_project.yml` - model configuration and materialization
+- `models/` - GOLD/SILVER/BRONZE SQL models and schema tests
+- `macros/` - dbt macros for helpers / naming / validation
+- `packages.yml` - dbt package dependencies (`dbt_utils`, `dbt_date`, etc.)
+- `profiles.yml` - local connection settings (not committed in repo)
+- `scripts/pr_and_merge.py` - GitHub API PR automation
+- `Makefile` - common commands (build/test/deploy/pr-and-merge)
+- `README.md` - this document
+- `.github/workflows/dbt.yml` - CI/CD pipeline
+- `.github/workflows/auto-pr-merge.yml` - PR automation (mostly disabled)
+
+---
+
+## ⚙️ Setup (Local Development)
+
+### Requirements
 - Python 3.11
-- GCP project with BigQuery access
-- `gcloud` CLI authenticated
+- dbt-bigquery 1.8.3
+- gcloud CLI authenticated with Workload Identity
+- GitHub token in `.env` (`GITHUB_TOKEN=...`)
 
-### Setup
+### Bootstrap
 
 ```bash
-# 1. Clone and enter project
-git clone <repo-url> && cd dbt
-
-# 2. Create virtual environment
+git clone <repo> && cd dbt
 python -m venv .venv
-.venv\Scripts\activate       # Windows
-source .venv/bin/activate    # macOS/Linux
-
-# 3. Install dependencies
+.venv/Scripts/activate  # Windows
+source .venv/bin/activate  # macOS/Linux
 pip install -r requirements.txt
-
-# 4. Install dbt packages
 dbt deps
+```
 
-# 5. Validate connection
+### Quick commands
+
+```bash
 dbt debug
-
-# Windows convenience: use run_dbt.ps1 if make is unavailable
-#   .\run_dbt.ps1 build  OR  .\run_dbt.ps1 run --select bronze
-
-# Optional: make `make` and `dbt` available globally in PowerShell
-# 1) Add GNU make installation path (winget / choco) to user PATH
-#    setx PATH "%PATH%;C:\Program Files (x86)\GnuWin32\bin"
-# 2) Add project virtualenv scripts to user PATH
-#    setx PATH "%PATH%;C:\Users\uktim\OneDrive\Documents\Code\dbt\.venv\Scripts"
-
-# 6. Load seeds
-dbt seed
-
-# 6. Load seeds
-dbt seed
-
-# 7. Run snapshots (first time)
-dbt snapshot
-
-# 8. Full build
-dbt build
-```
-
-### Environment Targets
-
-| Target | Schema prefix | Use |
-|---|---|---|
-| `dev` | `dev_dataset_bronze/silver/gold` | Local development |
-| `staging` | `staging_dataset_bronze/silver/gold` | Pre-prod validation |
-| `prod` | `bronze` / `silver` / `gold` | Production (CI/CD only) |
-
-```bash
-dbt build --target dev      # Development
-dbt build --target prod     # Production (runs in GitHub Actions)
-```
-
----
-
-## Key Commands
-
-```bash
-# Build by layer
 make build-bronze
 make build-silver
 make build-gold
-
-# Build specific report
-dbt build --select rpt_subscription_health
-
-# Slim CI (feature branch)
-dbt build --select state:modified+ --defer --state ./prod_manifest
-
-# Source freshness
-dbt source freshness
-
-# Snapshots
-dbt snapshot --target prod
-
-# Docs
-make docs-serve
+make pr-and-merge   # merges feature to master via GitHub API
 ```
 
-See [DBT_CHEAT_SHEET.md](DBT_CHEAT_SHEET.md) for the full command reference.
+---
+
+## 🧪 Testing
+
+- `dbt test --select <model>`
+- `dbt source freshness --target dev`
+- `dbt snapshot --target dev`
+- `dbt build --target dev --select state:modified+ --defer --state ./prod_manifest`
 
 ---
 
-## CI/CD Pipeline
+## 🔐 Security & Secrets
 
-| Event | Job | Scope |
-|---|---|---|
-| Push to `feature/**` | CI (slim build) | `state:modified+` vs prod manifest |
-| PR to `master` | CI (slim build) | `state:modified+` vs prod manifest |
-| Push to `master` | CD (full prod deploy) | All models, requires `production` env approval |
-
-**Required GitHub Secrets:**
-
-| Secret | Description |
-|---|---|
-| `GCP_WORKLOAD_IDENTITY_PROVIDER` | WIF provider resource name |
-| `GCP_SA_EMAIL` | Service account email (BigQuery Data Editor + Job User) |
-| `GCP_PROJECT_ID` | `project-2ac71b10-d4cb-403a-b2c` |
-| `GCS_BUCKET` | GCS bucket for prod manifest storage |
+- `.env` is gitignored and should store secrets locally only.
+- GitHub Actions uses repository secrets:
+  - `GCP_WORKLOAD_IDENTITY_PROVIDER`
+  - `GCP_SA_EMAIL`
+  - `GCP_PROJECT_ID`
+  - `GCS_BUCKET`
+  - `GITHUB_TOKEN` (for automation tasks)
+- Never commit `.env`, `profiles.yml`, or service account keys.
 
 ---
 
-## Development
+## 🧭 CI/CD Strategy
 
-See [DEVELOPMENT.md](DEVELOPMENT.md) for naming conventions, best practices, and PR checklist.
-See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed layer descriptions and design decisions.
-See [AGENTS.md](AGENTS.md) for AI agent workflows (Claude-powered).
+- `on: push` for feature branches runs `ci` job with quick validation
+- `on: pull_request` to master also runs `ci` job
+- `on: push` to master triggers `deploy` (prod dbt build)
+- `api` workflows produce `state:modified+` behavior in CI when manifest exists
+
+---
+
+## 📘 Reference
+
+- `ARCHITECTURE.md`: design principles and medallion choices
+- `DEVELOPMENT.md`: conventions, branch/PR policy, testing
+- `DBT_CHEAT_SHEET.md`: quick dbt command reference
+- `AGENTS.md`: agent review protocol for changes
