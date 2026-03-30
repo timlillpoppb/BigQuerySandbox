@@ -54,11 +54,14 @@ def fmt_currency(v: float) -> str:
     except (TypeError, ValueError):
         return ""
 
-    if v >= 1_000_000:
-        return f"${v / 1_000_000:.2f}M"
-    if v >= 1_000:
-        return f"${v / 1_000:.1f}K"
-    return f"${v:.2f}"
+    sign = "-" if float(v) < 0 else ""
+    abs_v = abs(float(v))
+
+    if abs_v >= 1_000_000:
+        return f"{sign}${abs_v / 1_000_000:.2f}M"
+    if abs_v >= 1_000:
+        return f"{sign}${abs_v / 1_000:.1f}K"
+    return f"{sign}${abs_v:.2f}"
 
 
 def fmt_pct(v: float) -> str:

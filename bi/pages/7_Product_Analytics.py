@@ -153,8 +153,8 @@ with st.expander("Show full table (sortable)"):
         "overall_revenue_rank",
     ]
     df_disp = df[display_cols].copy()
-    df_disp["total_revenue"] = df_disp.total_revenue.map("${:,.2f}".format)
-    df_disp["avg_sale_price"] = df_disp.avg_sale_price.map("${:,.2f}".format)
+    df_disp["total_revenue"] = df_disp.total_revenue.map(fmt_currency)
+    df_disp["avg_sale_price"] = df_disp.avg_sale_price.map(fmt_currency)
     df_disp["avg_gross_margin_pct"] = df_disp.avg_gross_margin_pct.map(pct_or_blank)
     df_disp["return_rate"] = df_disp.return_rate.map(pct_or_blank)
     df_disp.columns = [
