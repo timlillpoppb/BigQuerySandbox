@@ -6,6 +6,16 @@
 .PHONY: debug parse list docs-serve
 .PHONY: state-modified state-modified-plus
 
+# Cross-platform dbt executable selection.
+# On Windows PowerShell, make may not be installed, and path separators are backslashes.
+DBT_EXE := ./.venv/Scripts/dbt.exe
+PYTHON_EXE := ./.venv/Scripts/python.exe
+ifeq ($(OS),Windows_NT)
+  # Absolute path expressed in Windows separators (e.g. C:\Users\...\dbt.exe)
+  DBT_EXE := $(subst /,\\,$(CURDIR))\\.venv\\Scripts\\dbt.exe
+  PYTHON_EXE := $(subst /,\\,$(CURDIR))\\.venv\\Scripts\\python.exe
+endif
+
 help: ## Show this help
 	@echo "Available make commands:"
 	@echo "  build           - Build all models (run + test)"
@@ -35,158 +45,158 @@ help: ## Show this help
 	@echo "Other commands: compile, snapshot, seed, source-freshness, debug, parse, list, docs-serve"
 
 install: ## Install Python dependencies
-	./.venv/Scripts/python.exe -m pip install -r requirements.txt
+	$(PYTHON_EXE) -m pip install -r requirements.txt
 
 deps: ## Install dbt packages
-	./.venv/Scripts/dbt.exe deps
+	$(DBT_EXE) deps
 
 # ===== RUN COMMANDS =====
 run: ## Run all models
-	./.venv/Scripts/dbt.exe run
+	$(DBT_EXE) run
 
 run-full: ## Run all models with full refresh
-	./.venv/Scripts/dbt.exe run --full-refresh
+	$(DBT_EXE) run --full-refresh
 
 run-bronze: ## Run bronze layer models
-	./.venv/Scripts/dbt.exe run --select bronze
+	$(DBT_EXE) run --select bronze
 
 run-silver: ## Run silver layer models
-	./.venv/Scripts/dbt.exe run --select silver
+	$(DBT_EXE) run --select silver
 
 run-gold: ## Run gold layer models
-	./.venv/Scripts/dbt.exe run --select gold
+	$(DBT_EXE) run --select gold
 
 run-staging: ## Run staging models
-	./.venv/Scripts/dbt.exe run --select stg_*
+	$(DBT_EXE) run --select stg_*
 
 run-facts: ## Run fact tables
-	./.venv/Scripts/dbt.exe run --select fact_*
+	$(DBT_EXE) run --select fact_*
 
 run-dims: ## Run dimension tables
-	./.venv/Scripts/dbt.exe run --select dim_*
+	$(DBT_EXE) run --select dim_*
 
 run-incremental: ## Run incremental models only
-	./.venv/Scripts/dbt.exe run --select config.materialized:incremental
+	$(DBT_EXE) run --select config.materialized:incremental
 
 # ===== BUILD COMMANDS =====
 build: ## Build all models (run + test)
-	./.venv/Scripts/dbt.exe build
+	$(DBT_EXE) build
 
 build-full: ## Build all models with full refresh
-	./.venv/Scripts/dbt.exe build --full-refresh
+	$(DBT_EXE) build --full-refresh
 
 build-bronze: ## Build bronze layer
-	./.venv/Scripts/dbt.exe build --select bronze
+	$(DBT_EXE) build --select bronze
 
 build-silver: ## Build silver layer
-	./.venv/Scripts/dbt.exe build --select silver
+	$(DBT_EXE) build --select silver
 
 build-gold: ## Build gold layer
-	./.venv/Scripts/dbt.exe build --select gold
+	$(DBT_EXE) build --select gold
 
 # ===== TEST COMMANDS =====
 test: ## Run all tests
-	./.venv/Scripts/dbt.exe test
+	$(DBT_EXE) test
 
 test-data: ## Run data tests only
-	./.venv/Scripts/dbt.exe test --data
+	$(DBT_EXE) test --data
 
 test-schema: ## Run schema tests only
-	./.venv/Scripts/dbt.exe test --schema
+	$(DBT_EXE) test --schema
 
 test-bronze: ## Test bronze layer
-	./.venv/Scripts/dbt.exe test --select bronze
+	$(DBT_EXE) test --select bronze
 
 test-silver: ## Test silver layer
-	./.venv/Scripts/dbt.exe test --select silver
+	$(DBT_EXE) test --select silver
 
 test-gold: ## Test gold layer
-	./.venv/Scripts/dbt.exe test --select gold
+	$(DBT_EXE) test --select gold
 
 # ===== STATE-BASED COMMANDS (CI/CD) =====
 state-modified: ## Run modified models since last state
-	./.venv/Scripts/dbt.exe run --select state:modified
+	$(DBT_EXE) run --select state:modified
 
 state-modified-plus: ## Run modified models + downstream
-	./.venv/Scripts/dbt.exe run --select state:modified+
+	$(DBT_EXE) run --select state:modified+
 
 state-test-modified: ## Test modified models
-	./.venv/Scripts/dbt.exe test --select state:modified
+	$(DBT_EXE) test --select state:modified
 
 state-build-modified: ## Build modified models + downstream
-	./.venv/Scripts/dbt.exe build --select state:modified+
+	$(DBT_EXE) build --select state:modified+
 
 # ===== OTHER DBT COMMANDS =====
 compile: ## Compile all models (dry run)
-	./.venv/Scripts/dbt.exe compile
+	$(DBT_EXE) compile
 
 snapshot: ## Update all snapshots
-	./.venv/Scripts/dbt.exe snapshot
+	$(DBT_EXE) snapshot
 
 seed: ## Load seed data
-	./.venv/Scripts/dbt.exe seed
+	$(DBT_EXE) seed
 
 source-freshness: ## Check source data freshness
-	./.venv/Scripts/dbt.exe source freshness
+	$(DBT_EXE) source freshness
 
 debug: ## Debug dbt configuration
-	./.venv/Scripts/dbt.exe debug
+	$(DBT_EXE) debug
 
 parse: ## Parse project and validate
-	./.venv/Scripts/dbt.exe parse
+	$(DBT_EXE) parse
 
 list: ## List all models
-	./.venv/Scripts/dbt.exe list
+	$(DBT_EXE) list
 
 docs: ## Generate documentation
-	./.venv/Scripts/dbt.exe docs generate
+	$(DBT_EXE) docs generate
 
 docs-serve: ## Serve docs locally
-	./.venv/Scripts/dbt.exe docs serve
+	$(DBT_EXE) docs serve
 
 # ===== UTILITY COMMANDS =====
 clean: ## Clean target directory
 	rm -rf target/
 
 version: ## Show dbt version
-	./.venv/Scripts/dbt.exe --version
+	$(DBT_EXE) --version
 
 # ===== CUSTOM SELECT COMMANDS =====
 # Usage: make run-select SELECT="my_model"
 run-select: ## Run specific model(s) - usage: make run-select SELECT="my_model"
-	./.venv/Scripts/dbt.exe run --select $(SELECT)
+	$(DBT_EXE) run --select $(SELECT)
 
 test-select: ## Test specific model(s) - usage: make test-select SELECT="my_model"
-	./.venv/Scripts/dbt.exe test --select $(SELECT)
+	$(DBT_EXE) test --select $(SELECT)
 
 build-select: ## Build specific model(s) - usage: make build-select SELECT="my_model"
-	./.venv/Scripts/dbt.exe build --select $(SELECT)
+	$(DBT_EXE) build --select $(SELECT)
 
 # ===== ENVIRONMENT TARGETS =====
 # Usage: make run-target-dev, make run-target-staging, make run-target-prod
 run-target-dev: ## Run in dev environment
-	./.venv/Scripts/dbt.exe run --target dev
+	$(DBT_EXE) run --target dev
 
 run-target-staging: ## Run in staging environment
-	./.venv/Scripts/dbt.exe run --target staging
+	$(DBT_EXE) run --target staging
 
 run-target-prod: ## Run in prod environment
-	./.venv/Scripts/dbt.exe run --target prod
+	$(DBT_EXE) run --target prod
 
 test-target-dev: ## Test in dev environment
-	./.venv/Scripts/dbt.exe test --target dev
+	$(DBT_EXE) test --target dev
 
 test-target-staging: ## Test in staging environment
-	./.venv/Scripts/dbt.exe test --target staging
+	$(DBT_EXE) test --target staging
 
 test-target-prod: ## Test in prod environment
-	./.venv/Scripts/dbt.exe test --target prod
+	$(DBT_EXE) test --target prod
 
 build-target-dev: ## Build in dev environment
-	./.venv/Scripts/dbt.exe build --target dev
+	$(DBT_EXE) build --target dev
 
 build-target-staging: ## Build in staging environment
-	./.venv/Scripts/dbt.exe build --target staging
+	$(DBT_EXE) build --target staging
 
 build-target-prod: ## Build in prod environment
-	./.venv/Scripts/dbt.exe build --target prod
+	$(DBT_EXE) build --target prod

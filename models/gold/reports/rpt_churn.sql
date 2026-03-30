@@ -25,9 +25,9 @@ monthly_subscribers as (
     select
         revenue_month,
         customer_segment,
-        countif(mrr_movement_type != 'churned')                    as active_subscribers,
-        countif(mrr_movement_type = 'new')                         as new_subscribers,
-        countif(mrr_movement_type = 'churned')                     as churned_subscribers,
+        countif(mrr_movement_type != 'churned')                     as active_subscribers,
+        countif(mrr_movement_type = 'new')                          as new_subscribers,
+        countif(mrr_movement_type = 'churned')                      as churned_subscribers,
         sum(monthly_revenue)                                        as total_mrr,
         sum(new_mrr)                                                as new_mrr,
         sum(churned_mrr)                                            as churned_mrr,
@@ -67,15 +67,15 @@ select
     contraction_mrr,
 
     -- Churn rate = churned / prior active
-    {{ safe_divide('churned_subscribers', 'prior_active_subscribers') }} as subscriber_churn_rate,
+    {{ safe_divide('churned_subscribers', 'prior_active_subscribers') }}        as subscriber_churn_rate,
 
     -- Revenue churn rate
-    {{ safe_divide('abs(churned_mrr)', 'prior_total_mrr') }}        as revenue_churn_rate,
+    {{ safe_divide('abs(churned_mrr)', 'prior_total_mrr') }}                    as revenue_churn_rate,
 
     -- Net revenue retention rate = (retained + expansion) / prior MRR
-    {{ safe_divide('retained_mrr + expansion_mrr', 'prior_total_mrr') }} as net_revenue_retention_rate,
+    {{ safe_divide('retained_mrr + expansion_mrr', 'prior_total_mrr') }}        as net_revenue_retention_rate,
 
     -- Net subscriber growth
-    new_subscribers - churned_subscribers                           as net_subscriber_change
+    new_subscribers - churned_subscribers                                       as net_subscriber_change
 
 from with_prior
